@@ -87,6 +87,7 @@
                     </div>
                     <h2 class="text-2xl font-bold text-slate-700 mb-2 font-hand text-3xl" id="welcome-title">안녕! 오늘 하루는 어땠어?</h2>
                     <p class="text-slate-500 mb-8 text-sm md:text-base">오늘 하루 속 소중한 마음들을<br>엄마 아빠와 함께 나누어 보자!</p>
+                    <p id="init-login-check" class="text-rose-500 font-bold text-xs mt-2 hidden">⚠️ 서버와 연결을 확인하는 중입니다...</p>
                     <button onclick="startDiaryFlow()" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-lg rounded-2xl shadow-lg shadow-amber-200 transition-all">
                         마음 일기장 펼치기 ✨
                     </button>
@@ -251,15 +252,20 @@
             { icon: '🥱', text: '피곤해요' }, { icon: '😢', text: '속상해요' }, { icon: '😡', text: '화나요' }
         ];
 
-        signInAnonymously(auth).catch(err => {
-            console.error("초기 인증 지연:", err);
-            showToast('⚠️', '서버와 연결을 구성하고 있습니다.');
-        });
+        // 비동기 인증 즉각 트리거 및 가드 설치
+        const performAuth = () => {
+            signInAnonymously(auth).catch(err => {
+                console.error("인증 처리 지연:", err);
+            });
+        };
+        performAuth();
 
         onAuthStateChanged(auth, (u) => {
             if(u) {
                 document.getElementById('sync-status').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 ml-1";
                 document.getElementById('sync-status').title = "실시간 구름 서버 연결 성공!";
+                const loader = document.getElementById('init-login-check');
+                if(loader) loader.classList.add('hidden');
                 setupFirestoreListener();
             } else {
                 document.getElementById('sync-status').className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse ml-1";
@@ -279,7 +285,7 @@
                     renderParentsTab();
                 }
             }, (error) => {
-                console.error("동기화 오류:", error);
+                console.error("동기화 권한 거부:", error);
                 showDiagnosticModal(`데이터베이스 읽기 거부 (Database Read Error)\n원인: ${error.message}`);
             });
         }
@@ -431,11 +437,13 @@
                 currentStep++; renderStep();
             } else {
                 if (!auth.currentUser) {
-                    showToast('⏳', '서버와 안전 연결을 재설정하는 중입니다...');
+                    const checkTxt = document.getElementById('init-login-check');
+                    if(checkTxt) checkTxt.classList.remove('hidden');
+                    showToast('⏳', '안전 세션을 확보하는 중입니다...');
                     try {
                         await signInAnonymously(auth);
                     } catch (err) {
-                        showDiagnosticModal("연결 미확보 (Not Authenticated)\n원인: 아직 서버와 인증 연결이 완료되지 않았습니다. 상세에러: " + err.message);
+                        showDiagnosticModal("연결 실패 (Auth Connection Error)\n원인: 파이어베이스의 익명 로그인이 허용되어 있는지 최종 확인바랍니다. 상세: " + err.message);
                         return;
                     }
                 }
@@ -446,7 +454,7 @@
                     document.getElementById('write-start-screen').classList.remove('hidden');
                     switchTab('history');
                 } catch(e) { 
-                    console.error("저장 오류:", e);
+                    console.error("트랜잭션 거부:", e);
                     showDiagnosticModal(`데이터베이스 쓰기 거부 (Database Write Error)\n상세원인: ${e.message || e}`);
                 }
             }
@@ -552,7 +560,7 @@
                 await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentLove: true }); 
                 showToast('❤️', '하트 시그널이 전송됐어요!'); 
             } catch(e) {
-                showDiagnosticModal(`반응 오류 (Parent Action Error)\n원인: ${e.message}`);
+                showDiagnosticModal(`반응 처리 차단 (Parent Action Denied)\n원인: ${e.message}`);
             }
         }
         async function sendParentReply(id) {
@@ -562,14 +570,14 @@
                 await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentReply: v.trim(), parentLove: true });
                 showToast('💌', '아이에게 따뜻한 사랑이 전송되었습니다!');
             } catch(e) {
-                showDiagnosticModal(`답장 전송 오류 (Reply Action Error)\n원인: ${e.message}`);
+                showDiagnosticModal(`답장 처리 차단 (Reply Action Denied)\n원인: ${e.message}`);
             }
         }
         async function resetParentReply(id) { 
             try {
                 await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentReply: '', parentLove: false }); 
             } catch(e) {
-                showDiagnosticModal(`수정 오류 (Reset Action Error)\n원인: ${e.message}`);
+                showDiagnosticModal(`재설정 오류 (Reset Action Error)\n원인: ${e.message}`);
             }
         }
 
@@ -611,7 +619,7 @@
                             closeModal('confirm-modal');
                             showToast('🗑️', '정상 삭제 완료');
                         } catch(e) {
-                            showDiagnosticModal(`삭제 오류 (Delete Error)\n원인: ${e.message}`);
+                            showDiagnosticModal(`삭제 행위 거부 (Delete Denied)\n원인: ${e.message}`);
                         }
                     });
                 };
