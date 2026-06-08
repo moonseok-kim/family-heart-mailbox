@@ -335,41 +335,39 @@
             if (currentStep < steps.length - 1) {
                 currentStep++;
                 renderStep();
-            } else {
-                const btnNext = document.getElementById('btn-next');
-                btnNext.disabled = true;
-                btnNext.innerHTML = '저장 중... ⏳';
-
-                try {
-                    const diaryRef = doc(db, 'diaries', draftDiary.id);
-                    await setDoc(diaryRef, {
-                        id: draftDiary.id,
-                        writer: draftDiary.writer,
-                        date: draftDiary.date,
-                        mood: draftDiary.mood,
-                        q1: draftDiary.q1 || '',
-                        q2: draftDiary.q2 || '',
-                        q3: draftDiary.q3 || '',
-                        q4: draftDiary.q4 || '',
-                        q5: draftDiary.q5 || '',
-                        parentLove: false,
-                        parentReply: ''
-                    });
-                    showToast('🎉', '일기가 저장되었습니다!');
-                    document.getElementById('write-wizard').classList.add('hidden');
-                    document.getElementById('write-start-screen').classList.remove('hidden');
-                    switchTab('history');
-                } catch (e) {
-                    console.error('저장 오류 전체:', e);
-                    const code = e.code || '';
-                    const msg = e.message || '';
-                    alert(`저장 실패!\n코드: ${code}\n메시지: ${msg}`);
-                    showToast('❌', '저장 실패');
-                } finally {
-                    btnNext.disabled = false;
-                    btnNext.innerHTML = '<span id="btn-next-text">일기 완성하기</span>👉';
-                }
+                return;
             }
+
+            // 마지막 단계 - 저장
+            const btnNext = document.getElementById('btn-next');
+            btnNext.disabled = true;
+            btnNext.innerHTML = '저장 중... ⏳';
+
+            setDoc(doc(db, 'diaries', draftDiary.id), {
+                id: draftDiary.id,
+                writer: draftDiary.writer,
+                date: draftDiary.date,
+                mood: draftDiary.mood,
+                q1: draftDiary.q1 || '',
+                q2: draftDiary.q2 || '',
+                q3: draftDiary.q3 || '',
+                q4: draftDiary.q4 || '',
+                q5: draftDiary.q5 || '',
+                parentLove: false,
+                parentReply: ''
+            }).then(function() {
+                showToast('🎉', '일기가 저장되었습니다!');
+                document.getElementById('write-wizard').classList.add('hidden');
+                document.getElementById('write-start-screen').classList.remove('hidden');
+                document.getElementById('btn-next').disabled = false;
+                document.getElementById('btn-next').innerHTML = '<span id="btn-next-text">다음으로</span>👉';
+                switchTab('history');
+            }).catch(function(e) {
+                console.error(e);
+                showToast('❌', '저장 실패, 다시 눌러주세요');
+                document.getElementById('btn-next').disabled = false;
+                document.getElementById('btn-next').innerHTML = '<span id="btn-next-text">일기 완성하기</span>👉';
+            });
         }
 
         function prevStep() {
