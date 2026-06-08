@@ -115,6 +115,78 @@
     </div>
     <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3.5 rounded-2xl shadow-lg z-50 text-sm font-semibold opacity-0 pointer-events-none transition-all duration-300">✨ <span id="toast-msg">알림</span></div>
 
+    <script>
+        var FAMILY_PASSWORDS = { hanul: "1111", yeoul: "2222", parents: "1234" };
+        var diaries = []; var activeTab = 'write'; var currentStep = 0;
+        var selectedLoginUser = null; var currentUserRole = null; var draftDiary = {}; var selectedDiaryId = null;
+        var firebaseAuthGlobal = null; var firebaseDbGlobal = null;
+
+        var steps = [
+            { label: '기분 선택', title: '오늘 나의 기분은 어때?', icon: '🌈', helper: '대표 기분을 골라봐!', type: 'mood' },
+            { label: '기쁜 순간', title: '1. 오늘 재미있거나 좋은 일이 있었나요?', icon: '☀️', helper: '나를 웃게 만든 최고의 순간은?', placeholder: '축구 경기 이겨서 좋았어요!', key: 'q1', type: 'textarea' },
+            { label: '학교 생활', title: '2. 학교에서 쉬는 시간, 점심 시간에 어떻게 지냈나요?', icon: '🏫', helper: '학교에서 있었던 재미난 일은?', placeholder: '친구들이랑 잡기놀이 했어요.', key: 'q2', type: 'textarea' },
+            { label: '속상한 순간', title: '3. 기분이 상하거나 속상한 일이 있었나요?', icon: '😢', helper: '훌훌 털어놓고 싶은 아쉬운 순간은?', placeholder: '비가 와서 신발이 조금 젖었어요.', key: 'q3', type: 'textarea' },
+            { label: '학원과 운동', title: '4. 학원이나 복싱에서는 어땠나요?', icon: '🥊', helper: '땀 흘리며 열정적으로 운동한 이야기는?', placeholder: '복싱장에서 잽 연습 열심히 했어요!', key: 'q4', type: 'textarea' },
+            { label: '엄빠 소통', title: '5. 엄마, 아빠에게 전하고 싶은 얘기가 있나요.', icon: '💌', helper: '엄빠에게 전하는 따뜻한 메시지', placeholder: '엄마 아빠 사랑해요!', key: 'q5', type: 'textarea' }
+        ];
+        var moods = [{ icon: '😃', text: '신나요' }, { icon: '🥰', text: '행복해요' }, { icon: '🥱', text: '피곤해요' }, { icon: '😢', text: '속상해요' }, { icon: '😡', text: '화나요' }];
+
+        function selectLoginUser(userRole) {
+            selectedLoginUser = userRole;
+            document.querySelectorAll('#view-login button').forEach(function(b) { b.classList.remove('border-amber-400', 'bg-amber-50'); });
+            document.getElementById('btn-user-' + userRole).classList.add('border-amber-400', 'bg-amber-50');
+            document.getElementById('password-area').classList.remove('hidden');
+            document.getElementById('login-password').value = ''; document.getElementById('login-password').focus();
+        }
+
+        function checkPassword() {
+            var inputVal = document.getElementById('login-password').value;
+            if (FAMILY_PASSWORDS[selectedLoginUser] === inputVal) {
+                currentUserRole = selectedLoginUser;
+                showToast('🔑', '반갑습니다! 입장 성공!');
+                enterMainApp();
+            } else {
+                showToast('❌', '비밀번호가 다릅니다!');
+            }
+        }
+
+        function enterMainApp() {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            var titleMap = { hanul: "한울이의 마음일기", yeoul: "여울이의 마음일기", parents: "엄마아빠 우체통" };
+            var welcomeMap = { hanul: "한울아, 안녕! 오늘 하루는 어땠어?", yeoul: "여울아, 안녕! 오늘 하루는 어땠어?", parents: "아이들의 일기를 확인해 보세요" };
+            document.getElementById('header-title').innerText = titleMap[currentUserRole];
+            document.getElementById('welcome-title').innerText = welcomeMap[currentUserRole];
+            document.getElementById('header-avatar').innerText = currentUserRole === 'parents' ? '👩‍👨' : (currentUserRole === 'hanul' ? '👦' : '👧');
+            if (currentUserRole === 'parents') {
+                document.getElementById('nav-write-text').innerText = "안내 대문"; document.getElementById('nav-parents-text').innerText = "아이들 우체통"; switchTab('parents');
+            } else {
+                document.getElementById('nav-write-text').innerText = "일기 쓰기"; document.getElementById('nav-parents-text').innerText = "나의 우체통 반응"; switchTab('write');
+            }
+        }
+
+        function logout() { currentUserRole = null; selectedLoginUser = null; document.getElementById('main-app').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); document.getElementById('password-area').classList.add('hidden'); }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.getElementById('view-write').classList.add('hidden'); document.getElementById('view-history').classList.add('hidden'); document.getElementById('view-parents').classList.add('hidden');
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            ['write', 'history', 'parents'].forEach(function(t) { document.getElementById('tab-' + t).classList.remove('active-tab'); });
+            document.getElementById('tab-' + tabId).classList.add('active-tab');
+            if (tabId === 'history') renderHistoryTab(); if (tabId === 'parents') renderParentsTab();
+        }
+
+        function closeModal(mId) { document.getElementById(mId).classList.add('hidden'); }
+        function filterDiaries() { renderHistoryTab(); }
+        function showToast(icon, message) {
+            var t = document.getElementById('toast');
+            document.getElementById('toast-icon').innerText = icon;
+            document.getElementById('toast-msg').innerText = message;
+            t.classList.remove('opacity-0', 'pointer-events-none'); t.classList.add('opacity-100');
+            setTimeout(function() { t.classList.add('opacity-0', 'pointer-events-none'); t.classList.remove('opacity-100'); }, 3000);
+        }
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -132,24 +204,11 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
+        firebaseAuthGlobal = auth;
+        firebaseDbGlobal = db;
 
-        const FAMILY_PASSWORDS = { hanul: "1111", yeoul: "2222", parents: "1234" };
-        let diaries = []; let activeTab = 'write'; let currentStep = 0;
-        let selectedLoginUser = null; let currentUserRole = null; let draftDiary = {}; let selectedDiaryId = null;
-
-        const steps = [
-            { label: '기분 선택', title: '오늘 나의 기분은 어때?', icon: '🌈', helper: '대표 기분을 골라봐!', type: 'mood' },
-            { label: '기쁜 순간', title: '1. 오늘 재미있거나 좋은 일이 있었나요?', icon: '☀️', helper: '나를 웃게 만든 최고의 순간은?', placeholder: '축구 경기 이겨서 좋았어요!', key: 'q1', type: 'textarea' },
-            { label: '학교 생활', title: '2. 학교에서 쉬는 시간, 점심 시간에 어떻게 지냈나요?', icon: '🏫', helper: '학교에서 있었던 재미난 일은?', placeholder: '친구들이랑 잡기놀이 했어요.', key: 'q2', type: 'textarea' },
-            { label: '속상한 순간', title: '3. 기분이 상하거나 속상한 일이 있었나요?', icon: '😢', helper: '훌훌 털어놓고 싶은 아쉬운 순간은?', placeholder: '비가 와서 신발이 조금 젖었어요.', key: 'q3', type: 'textarea' },
-            { label: '학원과 운동', title: '4. 학원이나 복싱에서는 어땠나요?', icon: '🥊', helper: '땀 흘리며 열정적으로 운동한 이야기는?', placeholder: '복싱장에서 잽 연습 열심히 했어요!', key: 'q4', type: 'textarea' },
-            { label: '엄빠 소통', title: '5. 엄마, 아빠에게 전하고 싶은 얘기가 있나요.', icon: '💌', helper: '엄빠에게 전하는 따뜻한 메시지', placeholder: '엄마 아빠 사랑해요!', key: 'q5', type: 'textarea' }
-        ];
-        const moods = [{ icon: '😃', text: '신나요' }, { icon: '🥰', text: '행복해요' }, { icon: '🥱', text: '피곤해요' }, { icon: '😢', text: '속상해요' }, { icon: '😡', text: '화나요' }];
-
-        signInAnonymously(auth).then(() => setupFirestoreListener()).catch(err => console.error(err));
-
-        function setupFirestoreListener() {
+        signInAnonymously(auth).then(() => {
             onSnapshot(collection(db, 'diaries'), (snapshot) => {
                 const fetched = [];
                 snapshot.forEach(doc => { fetched.push({ id: doc.id, ...doc.data() }); });
@@ -157,56 +216,17 @@
                 diaries = fetched;
                 if (currentUserRole) { renderHistoryTab(); renderParentsTab(); updateUnreadParentsBadge(); }
             });
-        }
+        }).catch(err => console.error(err));
 
-        function selectLoginUser(userRole) {
-            selectedLoginUser = userRole;
-            document.querySelectorAll('#view-login button').forEach(b => b.classList.remove('border-amber-400', 'bg-amber-50'));
-            document.getElementById(`btn-user-${userRole}`).classList.add('border-amber-400', 'bg-amber-50');
-            document.getElementById('password-area').classList.remove('hidden');
-            document.getElementById('login-password').value = ''; document.getElementById('login-password').focus();
-        }
-
-        function checkPassword() {
-            const passInput = document.getElementById('login-password').value;
-            if (FAMILY_PASSWORDS[selectedLoginUser] === passInput) {
-                currentUserRole = selectedLoginUser; showToast('🔑', '반갑습니다! 입장 성공!'); enterMainApp();
-            } else { showToast('❌', '비밀번호가 다릅니다!'); }
-        }
-
-        function enterMainApp() {
-            document.getElementById('view-login').classList.add('hidden'); document.getElementById('main-app').classList.remove('hidden');
-            const titleMap = { hanul: "한울이의 마음일기", yeoul: "여울이의 마음일기", parents: "엄마아빠 우체통" };
-            const welcomeMap = { hanul: "한울아, 안녕! 오늘 하루는 어땠어?", yeoul: "여울아, 안녕! 오늘 하루는 어땠어?", parents: "아이들의 일기를 확인해 보세요" };
-            document.getElementById('header-title').innerText = titleMap[currentUserRole];
-            document.getElementById('welcome-title').innerText = welcomeMap[currentUserRole];
-            document.getElementById('header-avatar').innerText = currentUserRole === 'parents' ? '👩‍👨' : (currentUserRole === 'hanul' ? '👦' : '👧');
-            if (currentUserRole === 'parents') {
-                document.getElementById('nav-write-text').innerText = "안내 대문"; document.getElementById('nav-parents-text').innerText = "아이들 우체통"; switchTab('parents');
-            } else {
-                document.getElementById('nav-write-text').innerText = "일기 쓰기"; document.getElementById('nav-parents-text').innerText = "나의 우체통 반응"; switchTab('write');
-            }
-        }
-
-        function logout() { currentUserRole = null; selectedLoginUser = null; document.getElementById('main-app').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); document.getElementById('password-area').classList.add('hidden'); }
-
-        function switchTab(tabId) {
-            activeTab = tabId; document.getElementById('view-write').classList.add('hidden'); document.getElementById('view-history').classList.add('hidden'); document.getElementById('view-parents').classList.add('hidden');
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            ['write', 'history', 'parents'].forEach(t => document.getElementById(`tab-${t}`).classList.remove('active-tab'));
-            document.getElementById(`tab-${tabId}`).classList.add('active-tab');
-            if (tabId === 'history') renderHistoryTab(); if (tabId === 'parents') renderParentsTab();
-        }
-
-        function startDiaryFlow() {
+        window.startDiaryFlow = function() {
             if (currentUserRole === 'parents') return;
             currentStep = 0; const today = new Date(); const formattedDate = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
             if(diaries.find(d => d.date === formattedDate && d.writer === currentUserRole)) { showToast('📝', '오늘 일기는 이미 작성했습니다.'); switchTab('history'); return; }
             draftDiary = { id: `diary_${currentUserRole}_${Date.now()}`, writer: currentUserRole, date: formattedDate, mood: '😃', q1: '', q2: '', q3: '', q4: '', q5: '', parentLove: false, parentReply: '' };
             document.getElementById('write-start-screen').classList.add('hidden'); document.getElementById('write-wizard').classList.remove('hidden'); renderStep();
-        }
+        };
 
-        function renderStep() {
+        window.renderStep = function() {
             const step = steps[currentStep]; document.getElementById('step-icon').innerText = step.icon; document.getElementById('step-label').innerText = `STEP ${currentStep + 1} / ${steps.length}`;
             document.getElementById('step-title').innerText = step.title; document.getElementById('step-helper').innerText = step.helper;
             document.getElementById('progress-bar').style.width = `${((currentStep + 1) / steps.length) * 100}%`; document.getElementById('btn-prev').classList.toggle('invisible', currentStep === 0);
@@ -226,10 +246,11 @@
                 tx.placeholder = `예시) ${step.placeholder}`; tx.value = draftDiary[step.key] || ''; tx.oninput = (e) => draftDiary[step.key] = e.target.value;
                 container.appendChild(tx); tx.focus();
             }
-        }
+        };
 
-        function prevStep() { if(currentStep > 0) { currentStep--; renderStep(); } }
-        async function nextStep() {
+        window.prevStep = function() { if(currentStep > 0) { currentStep--; renderStep(); } };
+        
+        window.nextStep = async function() {
             const step = steps[currentStep];
             if (step.type === 'textarea' && step.key && !(draftDiary[step.key] || '').trim()) draftDiary[step.key] = '무탈하게 하루를 보냈어요 🍀';
             if (currentStep < steps.length - 1) { currentStep++; renderStep(); } else {
@@ -238,9 +259,9 @@
                     document.getElementById('write-wizard').classList.add('hidden'); document.getElementById('write-start-screen').classList.remove('hidden'); switchTab('history');
                 } catch(e) { showToast('❌', '저장 실패'); }
             }
-        }
+        };
 
-        function renderHistoryTab() {
+        window.renderHistoryTab = function() {
             const container = document.getElementById('diary-list'); const empty = document.getElementById('history-empty');
             const myDiaries = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
             if(myDiaries.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
@@ -255,9 +276,9 @@
                     <div><div class="flex items-center text-xs font-bold text-slate-500"><span>[${tag}]</span><span class="ml-2">${d.date}</span>${badge}</div><p class="text-slate-400 text-xs truncate mt-0.5">${d.q1}</p></div>
                 </div><span>👉</span>`; container.appendChild(card);
             });
-        }
+        };
 
-        function renderParentsTab() {
+        window.renderParentsTab = function() {
             const container = document.getElementById('parents-mail-list'); const empty = document.getElementById('parents-empty');
             const targetMails = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
             if(targetMails.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
@@ -278,39 +299,32 @@
                 card.innerHTML = `<div class="flex justify-between items-center mb-1.5"><span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded preschool-badge">${lbl}의 쪽지</span><span class="text-slate-400 text-[11px]">${d.date}</span></div>
                 <div class="bg-slate-50 p-3 rounded-xl font-hand text-base text-slate-700 shadow-inner">${d.q5 || '사랑해요!'}</div>${form}`; container.appendChild(card);
             });
-        }
+        };
 
-        async function sendParentLove(id) { await updateDoc(doc(db, 'diaries', id), { parentLove: true }); showToast('❤️', '하트 전송!'); }
-        async function sendParentReply(id) { const v = document.getElementById(`parent-reply-${id}`).value; if(!v.trim()) return; await updateDoc(doc(db, 'diaries', id), { parentReply: v.trim(), parentLove: true }); showToast('💌', '답장 완료!'); }
-        async function resetParentReply(id) { await updateDoc(doc(db, 'diaries', id), { parentReply: '', parentLove: false }); }
+        window.sendParentLove = async function(id) { await updateDoc(doc(db, 'diaries', id), { parentLove: true }); showToast('❤️', '하트 전송!'); };
+        window.sendParentReply = async function(id) { const v = document.getElementById(`parent-reply-${id}`).value; if(!v.trim()) return; await updateDoc(doc(db, 'diaries', id), { parentReply: v.trim(), parentLove: true }); showToast('💌', '답장 완료!'); };
+        window.resetParentReply = async function(id) { await updateDoc(doc(db, 'diaries', id), { parentReply: '', parentLove: false }); };
 
-        function openDiaryDetails(id) {
+        window.openDiaryDetails = function(id) {
             selectedDiaryId = id; const d = diaries.find(item => item.id === id); if (!d) return;
             document.getElementById('modal-mood-icon').innerText = d.mood; document.getElementById('modal-date').innerText = d.date;
             const area = document.getElementById('modal-content-area'); area.innerHTML = '';
             const items = [{ t: '☀️ 좋은 일', v: d.q1 }, { t: '🏫 학교 생활', v: d.q2 }, { t: '😢 속상한 일', v: d.q3 }, { t: '🥊 학원/운동', v: d.q4 }, { t: '💌 엄빠 쪽지', v: d.q5 }];
             items.forEach(it => { const div = document.createElement('div'); div.className = 'bg-slate-50 p-3 rounded-xl'; div.innerHTML = `<h4 class="text-[11px] font-bold text-slate-400 mb-0.5">${it.t}</h4><p class="text-slate-800 font-hand text-base">${it.v || '없음'}</p>`; area.appendChild(div); });
             document.getElementById('diary-modal').classList.remove('hidden');
-        }
+        };
 
-        async function deleteCurrentDiary() {
+        window.deleteCurrentDiary = async function() {
             if(!selectedDiaryId) return;
-            openConfirmModal('🗑️', '일기 삭제', '삭제하시겠습니까?', async () => {
-                await deleteDoc(doc(db, 'diaries', selectedDiaryId)); closeModal('diary-modal'); closeModal('confirm-modal'); showToast('🗑️', '삭제 완료');
-            });
-        }
+            if(confirm('이 일기를 정말 삭제하시겠습니까?')) {
+                await deleteDoc(doc(db, 'diaries', selectedDiaryId)); closeModal('diary-modal'); showToast('🗑️', '삭제 완료');
+            }
+        };
 
-        function updateUnreadParentsBadge() {
+        window.updateUnreadParentsBadge = function() {
             const count = diaries.filter(d => !d.parentLove && !d.parentReply).length; const b = document.getElementById('badge-count');
             if(count > 0 && currentUserRole === 'parents') { b.innerText = count; b.classList.remove('hidden'); } else { b.classList.add('hidden'); }
-        }
-
-        function closeModal(mId) { document.getElementById(mId).classList.add('hidden'); }
-        function openConfirmModal(icon, title, desc, action) { document.getElementById('confirm-icon').innerText = icon; document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-desc').innerText = desc; document.getElementById('confirm-action-btn').onclick = action; document.getElementById('confirm-modal').classList.remove('hidden'); }
-        function filterDiaries() { renderHistoryTab(); }
-        function showToast(icon, message) { const t = document.getElementById('toast'); document.getElementById('toast-icon').innerText = icon; document.getElementById('toast-msg').innerText = message; t.classList.remove('opacity-0', 'pointer-events-none'); t.classList.add('opacity-100'); setTimeout(() => { t.classList.add('opacity-0', 'pointer-events-none'); t.classList.remove('opacity-100'); }, 3000); }
-
-        window.selectLoginUser = selectLoginUser; window.checkPassword = checkPassword; window.logout = logout; window.switchTab = switchTab; window.startDiaryFlow = startDiaryFlow; window.prevStep = prevStep; window.nextStep = nextStep; window.confirmReset = () => { document.getElementById('write-wizard').classList.add('hidden'); document.getElementById('write-start-screen').classList.remove('hidden'); }; window.closeModal = closeModal; window.sendParentLove = sendParentLove; window.sendParentReply = sendParentReply; window.resetParentReply = resetParentReply; window.openDiaryDetails = openDiaryDetails; window.deleteCurrentDiary = deleteCurrentDiary;
+        };
     </script>
 </body>
 </html>
