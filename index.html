@@ -337,9 +337,8 @@
                 renderStep();
             } else {
                 const btnNext = document.getElementById('btn-next');
-                const btnNextText = document.getElementById('btn-next-text');
                 btnNext.disabled = true;
-                btnNextText.innerText = '저장 중...';
+                btnNext.innerHTML = '저장 중... ⏳';
 
                 try {
                     const diaryRef = doc(db, 'diaries', draftDiary.id);
@@ -368,7 +367,7 @@
                     showToast('❌', '저장 실패');
                 } finally {
                     btnNext.disabled = false;
-                    btnNextText.innerText = '일기 완성하기';
+                    btnNext.innerHTML = '<span id="btn-next-text">일기 완성하기</span>👉';
                 }
             }
         }
