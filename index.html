@@ -277,11 +277,6 @@
             currentStep = 0;
             const today = new Date();
             const formattedDate = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
-            if (diaries.find(d => d.date === formattedDate && d.writer === currentUserRole)) {
-                showToast('📝', '오늘 일기는 이미 작성했습니다.');
-                switchTab('history');
-                return;
-            }
             draftDiary = {
                 id: `diary_${currentUserRole}_${Date.now()}`,
                 writer: currentUserRole,
