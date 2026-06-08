@@ -12,13 +12,6 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .active-tab { background-color: #FEF3C7; color: #D97706; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        
-        /* 버튼 터치 시 생동감 넘치는 모션과 컬러감 부여 */
-        .btn-click-effect:active {
-            transform: scale(0.95);
-            background-color: #EA580C !important;
-            filter: brightness(0.9);
-        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-amber-50 via-pink-50 to-indigo-50 min-h-screen font-sans-kr text-slate-800 pb-12">
@@ -27,21 +20,21 @@
         <div id="view-login" class="fade-in max-w-md mx-auto mt-12 bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-amber-100 text-center">
             <div class="text-4xl mb-4">🏡</div>
             <h2 class="text-2xl font-bold text-amber-600 font-hand text-3xl mb-1">우리 가족 마음일기</h2>
-            <p class="text-xs text-slate-400 mb-8">누구인지 선택하고 비밀번호를 입력해 주세요.</p>
-            <div class="grid grid-cols-3 gap-3 mb-6">
-                <button type="button" onclick="selectLoginUser('hanul')" id="btn-user-hanul" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-amber-50 transition-all flex flex-col items-center">
+            <p class="text-xs text-slate-400 mb-8">문을 열고 들어가려면 누구인지 선택하고 비밀번호를 입력해 주세요.</p>
+            <div class="grid grid-cols-3 gap-3 mb-6" id="user-selector">
+                <button onclick="selectLoginUser('hanul')" id="btn-user-hanul" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-amber-50 transition-all flex flex-col items-center">
                     <span class="text-3xl mb-1">👦</span><span class="text-sm font-bold text-slate-600">한울이</span>
                 </button>
-                <button type="button" onclick="selectLoginUser('yeoul')" id="btn-user-yeoul" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-pink-50 transition-all flex flex-col items-center">
+                <button onclick="selectLoginUser('yeoul')" id="btn-user-yeoul" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-pink-50 transition-all flex flex-col items-center">
                     <span class="text-3xl mb-1">👧</span><span class="text-sm font-bold text-slate-600">여울이</span>
                 </button>
-                <button type="button" onclick="selectLoginUser('parents')" id="btn-user-parents" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-indigo-50 transition-all flex flex-col items-center">
+                <button onclick="selectLoginUser('parents')" id="btn-user-parents" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-indigo-50 transition-all flex flex-col items-center">
                     <span class="text-3xl mb-1">👩‍👨</span><span class="text-sm font-bold text-slate-600">엄마아빠</span>
                 </button>
             </div>
             <div id="password-area" class="hidden fade-in">
-                <input type="password" inputmode="numeric" id="login-password" placeholder="비밀번호 4자리 입력" class="w-full p-3 text-center text-lg font-bold tracking-widest rounded-xl border border-slate-200 mb-4 focus:outline-none focus:ring-2 focus:ring-amber-300" maxlength="4">
-                <button type="button" id="btn-submit-login" class="w-full py-3.5 bg-orange-500 text-white font-bold rounded-xl shadow-md btn-click-effect transition-all text-base">입장하기 🔑</button>
+                <input type="password" id="login-password" placeholder="비밀번호 4자리 입력" class="w-full p-3 text-center text-lg font-bold tracking-widest rounded-xl border border-slate-200 mb-4 focus:outline-none" maxlength="4">
+                <button onclick="checkPassword()" class="w-full py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-bold rounded-xl shadow-md">입장하기 🔑</button>
             </div>
         </div>
 
@@ -56,7 +49,7 @@
                 <p class="text-xs text-slate-500 font-hand text-lg" id="header-subtitle">소중한 마음을 기록하는 공간</p>
             </header>
 
-            <nav class="flex justify-between bg-white/60 p-1.5 rounded-2xl border mb-6 gap-1">
+            <nav class="flex justify-between bg-white/60 backdrop-blur-md p-1.5 rounded-2xl border mb-6 gap-1">
                 <button onclick="switchTab('write')" id="tab-write" class="flex-1 py-3 text-sm font-bold rounded-xl active-tab">✏️ <span id="nav-write-text">일기 쓰기</span></button>
                 <button onclick="switchTab('history')" id="tab-history" class="flex-1 py-3 text-sm font-bold rounded-xl text-slate-500 hover:bg-white/40">📚 <span>우리 방 일기</span></button>
                 <button onclick="switchTab('parents')" id="tab-parents" class="flex-1 py-3 text-sm font-bold rounded-xl text-slate-500 hover:bg-white/40 relative">
@@ -67,11 +60,12 @@
 
             <main id="view-write" class="fade-in">
                 <div id="write-start-screen" class="bg-white/90 p-8 rounded-3xl border text-center">
-                    <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce"><span class="text-5xl">📖</span></div>
+                    <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner animate-bounce"><span class="text-5xl">📖</span></div>
                     <h2 class="text-2xl font-bold text-slate-700 mb-2 font-hand text-3xl" id="welcome-title">오늘 하루는 어땠어?</h2>
                     <p class="text-slate-500 mb-8 text-sm">오늘 하루 속 소중한 마음들을<br>엄마 아빠와 함께 나누어 보자!</p>
-                    <button onclick="startDiaryFlow()" class="px-8 py-4 bg-orange-500 text-white font-bold text-lg rounded-2xl shadow-md btn-click-effect">마음 일기장 펼치기 ✨</button>
+                    <button onclick="startDiaryFlow()" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-bold text-lg rounded-2xl shadow-lg">마음 일기장 펼치기 ✨</button>
                 </div>
+
                 <div id="write-wizard" class="hidden bg-white/90 p-6 md:p-8 rounded-3xl border shadow-md">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
@@ -83,13 +77,13 @@
                         </div>
                     </div>
                     <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6"><div id="progress-bar" class="bg-gradient-to-r from-amber-400 to-indigo-400 h-full" style="width: 10%"></div></div>
-                    <div class="mb-8 min-h-[140px] flex flex-col justify-center">
+                    <div class="mb-8 min-h-[160px] flex flex-col justify-center">
                         <p id="step-helper" class="text-slate-500 text-sm mb-3 italic font-hand text-lg text-amber-600/80"></p>
                         <div id="step-input-container"></div>
                     </div>
                     <div class="flex justify-between items-center gap-4">
                         <button id="btn-prev" onclick="prevStep()" class="px-6 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl">이전</button>
-                        <button id="btn-next" onclick="nextStep()" class="flex-1 px-6 py-3.5 bg-orange-500 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 btn-click-effect"><span id="btn-next-text">다음</span>👉</button>
+                        <button id="btn-next" onclick="nextStep()" class="flex-1 px-6 py-3.5 bg-gradient-to-r from-amber-400 to-indigo-400 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2"><span>다음으로</span>👉</button>
                     </div>
                 </div>
             </main>
@@ -101,31 +95,99 @@
 
             <main id="view-parents" class="hidden fade-in">
                 <div id="parents-zone-info" class="bg-gradient-to-r from-rose-50 to-pink-50 border p-5 rounded-2xl mb-6 shadow-sm">
-                    <h3 class="font-bold text-rose-700 font-hand text-xl">👩‍👨 엄마 아빠 사랑의 우체통</h3>
-                    <p class="text-xs text-rose-600 mt-1">아이들이 보낸 실시간 편지가 배달되는 공간입니다. 하트와 답장을 남겨주세요!</p>
+                    <h3 class="font-bold text-rose-700 font-hand text-xl">엄마 아빠 사랑의 우체통</h3>
+                    <p class="text-xs text-rose-600 mt-1">우리 자녀들이 부모님께 보낸 실시간 편지가 배달되는 사서함입니다.</p>
                 </div>
                 <div id="parents-mail-list" class="space-y-4"></div>
-                <div id="parents-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📬</span><p class="text-slate-500 font-hand text-xl">아직 배달된 편지가 없어요.</p></div>
+                <div id="parents-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📬</span><p class="text-slate-500 font-hand text-xl">아직 아이들이 보낸 편지가 없어요.</p></div>
             </main>
         </div>
     </div>
 
     <div id="diary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto border fade-in">
-            <div class="p-5 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+            <div class="sticky top-0 bg-white p-5 border-b flex justify-between items-center z-10">
                 <div class="flex items-center gap-2"><span id="modal-mood-icon" class="text-3xl">😊</span><h3 id="modal-date" class="font-bold text-slate-800">날짜</h3></div>
                 <button onclick="closeModal('diary-modal')" class="text-slate-400 p-1 bg-slate-100 rounded-full">❌</button>
             </div>
-            <div class="p-6 space-y-4" id="modal-content-area"></div>
-            <div class="p-5 bg-slate-50 border-t flex gap-2"><button onclick="deleteCurrentDiary()" class="w-full py-2.5 bg-rose-50 text-rose-600 font-bold rounded-xl text-sm">🗑️ 일기장 삭제</button></div>
+            <div class="p-6 space-y-6" id="modal-content-area"></div>
         </div>
     </div>
     <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3.5 rounded-2xl shadow-lg z-50 text-sm font-semibold opacity-0 pointer-events-none transition-all duration-300">✨ <span id="toast-msg">알림</span></div>
 
+    <script>
+        var FAMILY_PASSWORDS = { hanul: "1111", yeoul: "2222", parents: "1234" };
+        var diaries = []; var activeTab = 'write'; var currentStep = 0;
+        var selectedLoginUser = null; var currentUserRole = null; var draftDiary = {};
+        var dbGlobal = null; var authGlobal = null;
+
+        var steps = [
+            { label: '기분 선택', title: '오늘 나의 기분은 어때?', icon: '🌈', helper: '나의 대표 기분을 골라봐!', type: 'mood' },
+            { label: '기쁜 순간', title: '1. 오늘 재미있거나 좋은 일이 있었나요?', icon: '☀️', helper: '나를 싱글벙글 웃게 만든 최고의 순간은?', placeholder: '오늘 친구랑 놀이터에서 놀았어요!', key: 'q1', type: 'textarea' },
+            { label: '학교 생활', title: '2. 학교에서 쉬는 시간, 점심 시간에 어떻게 지냈나요?', icon: '🏫', helper: '학교 종이 울리고 점심 먹을 때 있었던 일은?', placeholder: '점심시간에 소시지가 나왔어요!', key: 'q2', type: 'textarea' },
+            { label: '속상한 순간', title: '3. 기분이 상하거나 속상한 일이 있었나요?', icon: '😢', helper: '훌훌 털어놓고 싶은 속상했던 순간은?', placeholder: '비가 와서 신발이 조금 젖었어요.', key: 'q3', type: 'textarea' },
+            { label: '학원과 운동', title: '4. 학원이나 복싱에서는 어땠나요?', icon: '🥊', helper: '땀 흘리며 스트레스 팍팍 푼 이야기는?', placeholder: '복싱장에서 샌드백 원투 쳤어요!', key: 'q4', type: 'textarea' },
+            { label: '엄빠 소통', title: '5. 엄마, 아빠에게 전하고 싶은 얘기가 있나요.', icon: '💌', helper: '엄빠에게 전하는 따뜻한 편지 메시지', placeholder: '엄마 아빠 항상 사랑해요!', key: 'q5', type: 'textarea' }
+        ];
+        var moods = [{ icon: '😃', text: '신나요' }, { icon: '🥰', text: '행복해요' }, { icon: '🥱', text: '피곤해요' }, { icon: '😢', text: '속상해요' }, { icon: '😡', text: '화나요' }];
+
+        function selectLoginUser(userRole) {
+            selectedLoginUser = userRole;
+            document.getElementById('user-selector').querySelectorAll('button').forEach(function(b) { b.classList.remove('border-amber-400', 'bg-amber-50'); });
+            document.getElementById('btn-user-' + userRole).classList.add('border-amber-400', 'bg-amber-50');
+            document.getElementById('password-area').classList.remove('hidden');
+            document.getElementById('login-password').value = ''; document.getElementById('login-password').focus();
+        }
+
+        function checkPassword() {
+            var inputPass = document.getElementById('login-password').value;
+            if (FAMILY_PASSWORDS[selectedLoginUser] === inputPass) {
+                currentUserRole = selectedLoginUser;
+                showToast('🔑', '인증 성공! 반갑습니다.');
+                enterMainApp();
+            } else {
+                showToast('❌', '비밀번호가 일치하지 않아요!');
+            }
+        }
+
+        function enterMainApp() {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            var titleMap = { hanul: "한울이의 마음일기", yeoul: "여울이의 마음일기", parents: "엄마아빠 우체통" };
+            var welcomeMap = { hanul: "한울아, 안녕! 오늘 하루는 어땠어?", yeoul: "여울아, 안녕! 오늘 하루는 어땠어?", parents: "아이들의 일기를 읽어보세요" };
+            document.getElementById('header-title').innerText = titleMap[currentUserRole];
+            document.getElementById('welcome-title').innerText = welcomeMap[currentUserRole];
+            document.getElementById('header-avatar').innerText = currentUserRole === 'parents' ? '👩‍👨' : (currentUserRole === 'hanul' ? '👦' : '👧');
+            if (currentUserRole === 'parents') {
+                document.getElementById('nav-write-text').innerText = "안내 대문"; document.getElementById('nav-parents-text').innerText = "아이들 우체통"; switchTab('parents');
+            } else {
+                document.getElementById('nav-write-text').innerText = "일기 쓰기"; document.getElementById('nav-parents-text').innerText = "나의 우체통 반응"; switchTab('write');
+            }
+        }
+
+        function logout() { currentUserRole = null; selectedLoginUser = null; document.getElementById('main-app').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); document.getElementById('password-area').classList.add('hidden'); }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.getElementById('view-write').classList.add('hidden'); document.getElementById('view-history').classList.add('hidden'); document.getElementById('view-parents').classList.add('hidden');
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            ['write', 'history', 'parents'].forEach(function(t) { document.getElementById('tab-' + t).classList.remove('active-tab'); });
+            document.getElementById('tab-' + tabId).classList.add('active-tab');
+            if (tabId === 'history') renderHistoryTab(); if (tabId === 'parents') renderParentsTab();
+        }
+
+        function closeModal(mId) { document.getElementById(mId).classList.add('hidden'); }
+        function showToast(icon, message) {
+            var t = document.getElementById('toast'); document.getElementById('toast-icon').innerText = icon; document.getElementById('toast-msg').innerText = message;
+            t.classList.remove('opacity-0', 'pointer-events-none'); t.classList.add('opacity-100');
+            setTimeout(function() { t.classList.add('opacity-0', 'pointer-events-none'); t.classList.remove('opacity-100'); }, 3000);
+        }
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyCRdoiujidOfHG8pwn_EOoMC2UFzU190-w",
@@ -139,22 +201,11 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
-        const FAMILY_PASSWORDS = { hanul: "1111", yeoul: "2222", parents: "1234" };
-        let diaries = []; let activeTab = 'write'; let currentStep = 0;
-        let selectedLoginUser = null; let currentUserRole = null; let draftDiary = {}; let selectedDiaryId = null;
-
-        const steps = [
-            { label: '기분 선택', title: '오늘 나의 기분은 어때?', icon: '🌈', helper: '대표 기분을 골라봐!', type: 'mood' },
-            { label: '기쁜 순간', title: '1. 오늘 재미있거나 좋은 일이 있었나요?', icon: '☀️', helper: '나를 웃게 만든 최고의 순간은?', placeholder: '축구 경기 이겨서 좋았어요!', key: 'q1', type: 'textarea' },
-            { label: '학교 생활', title: '2. 학교에서 쉬는 시간, 점심 시간에 어떻게 지냈나요?', icon: '🏫', helper: '학교에서 있었던 재미난 일은?', placeholder: '친구들이랑 잡기놀이 했어요.', key: 'q2', type: 'textarea' },
-            { label: '속상한 순간', title: '3. 기분이 상하거나 속상한 일이 있었나요?', icon: '😢', helper: '훌훌 털어놓고 싶은 아쉬운 순간은?', placeholder: '비가 와서 신발이 조금 젖었어요.', key: 'q3', type: 'textarea' },
-            { label: '학원과 운동', title: '4. 학원이나 복싱에서는 어땠나요?', icon: '🥊', helper: '땀 흘리며 열정적으로 운동한 이야기는?', placeholder: '복싱장에서 잽 연습 열심히 했어요!', key: 'q4', type: 'textarea' },
-            { label: '엄빠 소통', title: '5. 엄마, 아빠에게 전하고 싶은 얘기가 있나요.', icon: '💌', helper: '엄빠에게 전하는 따뜻한 메시지', placeholder: '엄마 아빠 사랑해요!', key: 'q5', type: 'textarea' }
-        ];
-        const moods = [{ icon: '😃', text: '신나요' }, { icon: '🥰', text: '행복해요' }, { icon: '🥱', text: '피곤해요' }, { icon: '😢', text: '속상해요' }, { icon: '😡', text: '화나요' }];
+        
+        authGlobal = auth; dbGlobal = db;
 
         signInAnonymously(auth).then(() => {
+            // 저장과 읽기 주소를 한울이가 마주했던 공용 금고 'diaries'로 완전 단일화 맵핑!
             onSnapshot(collection(db, 'diaries'), (snapshot) => {
                 const fetched = [];
                 snapshot.forEach(doc => { fetched.push({ id: doc.id, ...doc.data() }); });
@@ -163,59 +214,6 @@
                 if (currentUserRole) { renderHistoryTab(); renderParentsTab(); updateUnreadParentsBadge(); }
             });
         }).catch(err => console.error(err));
-
-        window.selectLoginUser = function(userRole) {
-            selectedLoginUser = userRole;
-            document.querySelectorAll('#view-login button').forEach(b => b.classList.remove('border-amber-400', 'bg-amber-50'));
-            document.getElementById(`btn-user-${userRole}`).classList.add('border-amber-400', 'bg-amber-50');
-            document.getElementById('password-area').classList.remove('hidden');
-            document.getElementById('login-password').value = ''; 
-            setTimeout(() => document.getElementById('login-password').focus(), 100);
-        };
-
-        // 🛠️ 인풋 값을 문자열로 강제 결합 및 트림처리하여 완벽 락 해제
-        window.checkPassword = function() {
-            const passInput = String(document.getElementById('login-password').value).trim();
-            if (!selectedLoginUser) {
-                showToast('⚠️', '사용자를 먼저 선택해 주세요!');
-                return;
-            }
-            if (FAMILY_PASSWORDS[selectedLoginUser] === passInput) {
-                currentUserRole = selectedLoginUser; 
-                showToast('🔑', '반갑습니다! 입장 성공!'); 
-                enterMainApp();
-            } else { 
-                showToast('❌', '비밀번호가 다릅니다!'); 
-            }
-        };
-
-        // 명령어 묶음을 버튼 리스너로 2중 안전 장치 연동
-        document.getElementById('btn-submit-login').addEventListener('click', window.checkPassword);
-
-        function enterMainApp() {
-            document.getElementById('view-login').classList.add('hidden'); 
-            document.getElementById('main-app').classList.remove('hidden');
-            const titleMap = { hanul: "한울이의 마음일기", yeoul: "여울이의 마음일기", parents: "엄마아빠 우체통" };
-            const welcomeMap = { hanul: "한울아, 안녕! 오늘 하루는 어땠어?", yeoul: "여울아, 안녕! 오늘 하루는 어땠어?", parents: "아이들의 일기를 확인해 보세요" };
-            document.getElementById('header-title').innerText = titleMap[currentUserRole];
-            document.getElementById('welcome-title').innerText = welcomeMap[currentUserRole];
-            document.getElementById('header-avatar').innerText = currentUserRole === 'parents' ? '👩‍👨' : (currentUserRole === 'hanul' ? '👦' : '👧');
-            if (currentUserRole === 'parents') {
-                document.getElementById('nav-write-text').innerText = "안내 대문"; document.getElementById('nav-parents-text').innerText = "아이들 우체통"; switchTab('parents');
-            } else {
-                document.getElementById('nav-write-text').innerText = "일기 쓰기"; document.getElementById('nav-parents-text').innerText = "나의 우체통 반응"; switchTab('write');
-            }
-        }
-
-        window.logout = function() { currentUserRole = null; selectedLoginUser = null; document.getElementById('main-app').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); document.getElementById('password-area').classList.add('hidden'); };
-
-        window.switchTab = function(tabId) {
-            activeTab = tabId; document.getElementById('view-write').classList.add('hidden'); document.getElementById('view-history').classList.add('hidden'); document.getElementById('view-parents').classList.add('hidden');
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            ['write', 'history', 'parents'].forEach(t => document.getElementById(`tab-${t}`).classList.remove('active-tab'));
-            document.getElementById(`tab-${tabId}`).classList.add('active-tab');
-            if (tabId === 'history') renderHistoryTab(); if (tabId === 'parents') renderParentsTab();
-        };
 
         window.startDiaryFlow = function() {
             if (currentUserRole === 'parents') return;
@@ -312,18 +310,10 @@
             document.getElementById('diary-modal').classList.remove('hidden');
         };
 
-        window.deleteCurrentDiary = async function() {
-            if(!selectedDiaryId) return;
-            if(confirm('이 일기를 정말 삭제하시겠습니까?')) {
-                await deleteDoc(doc(db, 'diaries', selectedDiaryId)); closeModal('diary-modal'); showToast('🗑️', '삭제 완료');
-            }
-        };
-
         window.updateUnreadParentsBadge = function() {
             const count = diaries.filter(d => !d.parentLove && !d.parentReply).length; const b = document.getElementById('badge-count');
             if(count > 0 && currentUserRole === 'parents') { b.innerText = count; b.classList.remove('hidden'); } else { b.classList.add('hidden'); }
         };
-        window.closeModal = closeModal;
     </script>
 </body>
 </html>
