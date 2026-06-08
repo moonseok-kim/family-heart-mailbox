@@ -63,7 +63,7 @@
                 <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-sm border border-amber-100/50 mb-3">
                     <span class="text-2xl" id="header-avatar">☁️</span>
                     <h1 class="text-2xl md:text-3xl font-bold text-amber-600 font-hand tracking-wide" id="header-title">마음일기</h1>
-                    <span id="sync-status" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse ml-1"></span>
+                    <span id="sync-status" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse ml-1" title="서버 연결 대기 중..."></span>
                 </div>
                 <p class="text-xs md:text-sm text-slate-500 font-hand text-lg" id="header-subtitle">소중한 마음을 기록하는 공간</p>
             </header>
@@ -172,7 +172,36 @@
         </div>
     </div>
 
+    <div id="error-diagnostic-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full border border-rose-100 fade-in text-center">
+            <span class="text-5xl block mb-4">앗! 저장 오류가 났어요 😢</span>
+            <h3 class="text-lg font-bold text-rose-600 mb-2">원인을 찾아서 해결해 드릴게요!</h3>
+            
+            <div class="bg-rose-50 text-rose-700 text-xs md:text-sm font-mono p-4 rounded-xl text-left mb-6 overflow-x-auto max-h-[120px]">
+                <strong class="block mb-1">📋 시스템 에러 메시지:</strong>
+                <span id="diagnostic-error-msg">Unknown Error</span>
+            </div>
+
+            <div class="text-slate-600 text-xs md:text-sm text-left space-y-3 mb-6">
+                <p class="font-bold text-slate-800">💡 해결을 위해 다음 두 가지를 확인해 주세요:</p>
+                <div class="flex gap-2">
+                    <span class="text-rose-500 font-bold">1.</span>
+                    <span>파이어베이스의 **[규칙(Rules)]** 변경 후 **[게시(Publish)]** 버튼을 누르셨나요? (데이터베이스가 일기장 저장을 막고 있을 때 주로 발생해요.)</span>
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-rose-500 font-bold">2.</span>
+                    <span>파이어베이스 콘솔 ➡️ **[Authentication]** ➡️ **[Sign-in method]**에서 **[익명 (Anonymous)]** 로그인이 활성화되어 있나요?</span>
+                </div>
+            </div>
+
+            <button onclick="closeModal('error-diagnostic-modal')" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors">
+                창 닫고 다시 확인하기
+            </button>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3.5 rounded-2xl shadow-lg flex items-center gap-2 z-50 text-sm font-semibold opacity-0 pointer-events-none transition-all duration-300"><span id="toast-icon">✨</span><span id="toast-msg">알림</span></div>
+    
     <div id="confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full text-center fade-in"><span class="text-4xl block mb-3" id="confirm-icon">⚠️</span><h4 class="font-bold text-slate-800 text-lg mb-2" id="confirm-title">제목</h4><p class="text-slate-500 text-sm mb-6" id="confirm-desc">설명</p><div class="flex gap-2"><button onclick="closeModal('confirm-modal')" class="flex-1 py-2.5 bg-slate-100 text-slate-600 font-semibold rounded-xl text-sm">아니요</button><button id="confirm-action-btn" class="flex-1 py-2.5 bg-rose-500 text-white font-semibold rounded-xl text-sm">예</button></div></div></div>
 
     <script type="module">
@@ -180,31 +209,32 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // 🔑 대문자 F 복구 완료!
         const firebaseConfig = {
-          apiKey: "AIzaSyCRdoiujidOfHG8pwn_EOoMC2UfzU190-w",
+          apiKey: "AIzaSyCRdoiujidOfHG8pwn_EOoMC2UFzU190-w",
           authDomain: "hanul-heart-diary.firebaseapp.com",
           projectId: "hanul-heart-diary",
           storageBucket: "hanul-heart-diary.firebasestorage.app",
           messagingSenderId: "313053846900",
-          appId: "1:313053846900:web:bd6bb5d79e6bea468ca021"
+          appId: "1:313053846900:web:bd6bb5d79e6bea468ca021",
+          measurementId: "G-H2X20HXE0K"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 가족방 비밀번호 매핑 가이드 (여기서 비밀번호 변경 가능해요!)
         const FAMILY_PASSWORDS = {
-            hanul: "1111",   // 한울이 임시 비밀번호
-            yeoul: "2222",   // 여울이 임시 비밀번호
-            parents: "1234"  // 엄마아빠 임시 비밀번호
+            hanul: "1111",
+            yeoul: "2222",
+            parents: "1234"
         };
 
         let diaries = [];
         let activeTab = 'write';
         let currentStep = 0;
         let selectedLoginUser = null; 
-        let currentUserRole = null;    // 한울(hanul) / 여울(yeoul) / 엄빠(parents)
+        let currentUserRole = null;
         let draftDiary = {};
 
         const steps = [
@@ -221,16 +251,21 @@
             { icon: '🥱', text: '피곤해요' }, { icon: '😢', text: '속상해요' }, { icon: '😡', text: '화나요' }
         ];
 
-        // 초기 구동 인증
-        signInAnonymously(auth).catch(err => console.error(err));
+        signInAnonymously(auth).catch(err => {
+            console.error("초기 인증 지연:", err);
+            showToast('⚠️', '서버와 연결을 구성하고 있습니다.');
+        });
+
         onAuthStateChanged(auth, (u) => {
             if(u) {
                 document.getElementById('sync-status').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 ml-1";
+                document.getElementById('sync-status').title = "실시간 구름 서버 연결 성공!";
                 setupFirestoreListener();
+            } else {
+                document.getElementById('sync-status').className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse ml-1";
             }
         });
 
-        // 실시간 전채 동기화 리스너 개방
         function setupFirestoreListener() {
             onSnapshot(collection(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries'), (snapshot) => {
                 const fetched = [];
@@ -243,10 +278,12 @@
                     renderHistoryTab();
                     renderParentsTab();
                 }
+            }, (error) => {
+                console.error("동기화 오류:", error);
+                showDiagnosticModal(`데이터베이스 읽기 거부 (Database Read Error)\n원인: ${error.message}`);
             });
         }
 
-        // 로그인 유저 클릭 제어
         function selectLoginUser(userRole) {
             selectedLoginUser = userRole;
             document.getElementById('user-selector').querySelectorAll('button').forEach(b => b.classList.remove('border-amber-400', 'bg-amber-50'));
@@ -256,7 +293,6 @@
             document.getElementById('login-password').focus();
         }
 
-        // 패스워드 매칭
         function checkPassword() {
             const passInput = document.getElementById('login-password').value;
             if (FAMILY_PASSWORDS[selectedLoginUser] === passInput) {
@@ -268,12 +304,10 @@
             }
         }
 
-        // 앱 진입 인터페이스 셋업
         function enterMainApp() {
             document.getElementById('view-login').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
             
-            // 역할별 타이틀 데코레이션 변경
             const titleMap = { hanul: "한울이의 마음일기", yeoul: "여울이의 마음일기", parents: "엄마아빠 우체통" };
             const welcomeMap = { hanul: "한울아, 안녕! 오늘 하루는 어땠어?", yeoul: "여울아, 안녕! 오늘 하루는 어땠어?", parents: "아이들의 일기를 읽어보세요" };
             const avatarMap = { hanul: "👦", yeoul: "👧", parents: "💌" };
@@ -282,7 +316,6 @@
             document.getElementById('welcome-title').innerText = welcomeMap[currentUserRole];
             document.getElementById('header-avatar').innerText = avatarMap[currentUserRole];
 
-            // 탭메뉴 필터 권한 제어
             if (currentUserRole === 'parents') {
                 document.getElementById('nav-write-text').innerText = "안내 대문";
                 document.getElementById('nav-parents-text').innerText = "아이들 소통 우체통";
@@ -294,7 +327,6 @@
             }
         }
 
-        // 로그아웃
         function logout() {
             currentUserRole = null;
             selectedLoginUser = null;
@@ -331,7 +363,6 @@
             const today = new Date();
             const formattedDate = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
             
-            // 오늘 내가 쓴 일기가 있는지 체크
             if(diaries.find(d => d.date === formattedDate && d.writer === currentUserRole)) {
                 showToast('📝', '어라! 오늘 방 일기는 이미 완성했어요! 모아보기방에서 확인해봐요.');
                 switchTab('history');
@@ -340,7 +371,7 @@
 
             draftDiary = {
                 id: `diary_${currentUserRole}_${Date.now()}`,
-                writer: currentUserRole, // hanul 혹은 yeoul 분기태그 명시
+                writer: currentUserRole, 
                 date: formattedDate,
                 mood: '😃', q1: '', q2: '', q3: '', q4: '', q5: '',
                 parentLove: false, parentReply: ''
@@ -389,30 +420,44 @@
         function prevStep() { if(currentStep > 0) { currentStep--; renderStep(); } }
         async function nextStep() {
             const step = steps[currentStep];
-            if (step.type === 'textarea' && !(draftDiary[step.key] || '').trim()) {
-                draftDiary[step.key] = '씩씩하고 무탈하게 하루를 보냈어요 🍀';
+            
+            if (step.type === 'textarea' && step.key) {
+                if (!(draftDiary[step.key] || '').trim()) {
+                    draftDiary[step.key] = '씩씩하고 무탈하게 하루를 보냈어요 🍀';
+                }
             }
+            
             if (currentStep < steps.length - 1) {
                 currentStep++; renderStep();
             } else {
+                if (!auth.currentUser) {
+                    showToast('⏳', '서버와 안전 연결을 재설정하는 중입니다...');
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (err) {
+                        showDiagnosticModal("연결 미확보 (Not Authenticated)\n원인: 아직 서버와 인증 연결이 완료되지 않았습니다. 상세에러: " + err.message);
+                        return;
+                    }
+                }
                 try {
                     await setDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', draftDiary.id), draftDiary);
                     showToast('🎉', '마음 일기가 안전하게 클라우드함에 전송되었습니다!');
                     document.getElementById('write-wizard').classList.add('hidden');
                     document.getElementById('write-start-screen').classList.remove('hidden');
                     switchTab('history');
-                } catch(e) { showToast('❌', '저장 오류 발생'); }
+                } catch(e) { 
+                    console.error("저장 오류:", e);
+                    showDiagnosticModal(`데이터베이스 쓰기 거부 (Database Write Error)\n상세원인: ${e.message || e}`);
+                }
             }
         }
 
-        // 우리 방 일기 리스트 렌더링
         function renderHistoryTab() {
             const container = document.getElementById('diary-list');
             const empty = document.getElementById('history-empty');
             const query = document.getElementById('search-input').value.toLowerCase().trim();
             const moodFilter = document.getElementById('mood-filter').value;
 
-            // 엄빠는 모든 일기를 보고, 자녀는 자기 일기만 필터링
             const myDiaries = diaries.filter(d => {
                 const isWriterMatch = (currentUserRole === 'parents') || (d.writer === currentUserRole);
                 const isMoodMatch = (moodFilter === 'all' || d.mood === moodFilter);
@@ -449,12 +494,10 @@
             });
         }
 
-        // 우체통 리스트 구성
         function renderParentsTab() {
             const container = document.getElementById('parents-mail-list');
             const empty = document.getElementById('parents-empty');
 
-            // 자녀는 자기 우체통만, 엄빠는 수신 전체 데이터 표시
             const targetMails = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
 
             if(targetMails.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
@@ -504,14 +547,31 @@
             });
         }
 
-        async function sendParentLove(id) { await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentLove: true }); showToast('❤️', '하트 시그널이 전송됐어요!'); }
+        async function sendParentLove(id) { 
+            try {
+                await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentLove: true }); 
+                showToast('❤️', '하트 시그널이 전송됐어요!'); 
+            } catch(e) {
+                showDiagnosticModal(`반응 오류 (Parent Action Error)\n원인: ${e.message}`);
+            }
+        }
         async function sendParentReply(id) {
             const v = document.getElementById(`parent-reply-${id}`).value;
             if(!v.trim()) return;
-            await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentReply: v.trim(), parentLove: true });
-            showToast('💌', '아이에게 따뜻한 사랑이 전송되었습니다!');
+            try {
+                await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentReply: v.trim(), parentLove: true });
+                showToast('💌', '아이에게 따뜻한 사랑이 전송되었습니다!');
+            } catch(e) {
+                showDiagnosticModal(`답장 전송 오류 (Reply Action Error)\n원인: ${e.message}`);
+            }
         }
-        async function resetParentReply(id) { await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentReply: '', parentLove: false }); }
+        async function resetParentReply(id) { 
+            try {
+                await updateDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id), { parentReply: '', parentLove: false }); 
+            } catch(e) {
+                showDiagnosticModal(`수정 오류 (Reset Action Error)\n원인: ${e.message}`);
+            }
+        }
 
         function openDiaryDetails(id) {
             selectedDiaryId = id;
@@ -540,16 +600,19 @@
                 area.appendChild(div);
             });
 
-            // 자녀 본인이거나 엄빠일 때만 일기 삭제 권한 부여
             const delBtn = document.getElementById('modal-delete-btn');
             if(currentUserRole === 'parents' || diary.writer === currentUserRole) {
                 delBtn.classList.remove('hidden');
                 delBtn.onclick = () => {
                     closeModal('diary-modal');
                     openConfirmModal('🗑️', '일기를 삭제할까요?', '클라우드에서 영구 소멸됩니다.', async () => {
-                        await deleteDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id));
-                        closeModal('confirm-modal');
-                        showToast('🗑️', '정상 삭제 완료');
+                        try {
+                            await deleteDoc(doc(db, 'artifacts', 'hanul-heart-diary', 'public', 'data', 'diaries', id));
+                            closeModal('confirm-modal');
+                            showToast('🗑️', '정상 삭제 완료');
+                        } catch(e) {
+                            showDiagnosticModal(`삭제 오류 (Delete Error)\n원인: ${e.message}`);
+                        }
                     });
                 };
             } else {
@@ -564,6 +627,11 @@
             const b = document.getElementById('badge-count');
             if(count > 0 && currentUserRole === 'parents') { b.innerText = count; b.classList.remove('hidden'); }
             else { b.classList.add('hidden'); }
+        }
+
+        function showDiagnosticModal(errorMsg) {
+            document.getElementById('diagnostic-error-msg').innerText = errorMsg;
+            document.getElementById('error-diagnostic-modal').classList.remove('hidden');
         }
 
         function confirmReset() { openConfirmModal('🎨', '일기 쓰기 중단', '작성 중인 글이 초기화됩니다.', () => { document.getElementById('write-wizard').classList.add('hidden'); document.getElementById('write-start-screen').classList.remove('hidden'); closeModal('confirm-modal'); }); }
