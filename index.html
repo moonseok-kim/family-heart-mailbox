@@ -12,6 +12,11 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .active-tab { background-color: #FEF3C7; color: #D97706; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .btn-click-effect:active {
+            transform: scale(0.97);
+            background-color: #EA580C !important;
+            filter: brightness(0.9);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-amber-50 via-pink-50 to-indigo-50 min-h-screen font-sans-kr text-slate-800 pb-12">
@@ -20,27 +25,27 @@
         <div id="view-login" class="fade-in max-w-md mx-auto mt-12 bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-amber-100 text-center">
             <div class="text-4xl mb-4">🏡</div>
             <h2 class="text-2xl font-bold text-amber-600 font-hand text-3xl mb-1">우리 가족 마음일기</h2>
-            <p class="text-xs text-slate-400 mb-8">문을 열고 들어가려면 누구인지 선택하고 비밀번호를 입력해 주세요.</p>
-            <div class="grid grid-cols-3 gap-3 mb-6" id="user-selector">
-                <button onclick="selectLoginUser('hanul')" id="btn-user-hanul" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-amber-50 transition-all flex flex-col items-center">
+            <p class="text-xs text-slate-400 mb-8">누구인지 선택하고 비밀번호를 입력해 주세요.</p>
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <button type="button" id="btn-user-hanul" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-amber-50 transition-all flex flex-col items-center">
                     <span class="text-3xl mb-1">👦</span><span class="text-sm font-bold text-slate-600">한울이</span>
                 </button>
-                <button onclick="selectLoginUser('yeoul')" id="btn-user-yeoul" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-pink-50 transition-all flex flex-col items-center">
+                <button type="button" id="btn-user-yeoul" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-pink-50 transition-all flex flex-col items-center">
                     <span class="text-3xl mb-1">👧</span><span class="text-sm font-bold text-slate-600">여울이</span>
                 </button>
-                <button onclick="selectLoginUser('parents')" id="btn-user-parents" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-indigo-50 transition-all flex flex-col items-center">
+                <button type="button" id="btn-user-parents" class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-indigo-50 transition-all flex flex-col items-center">
                     <span class="text-3xl mb-1">👩‍👨</span><span class="text-sm font-bold text-slate-600">엄마아빠</span>
                 </button>
             </div>
             <div id="password-area" class="hidden fade-in">
-                <input type="password" id="login-password" placeholder="비밀번호 4자리 입력" class="w-full p-3 text-center text-lg font-bold tracking-widest rounded-xl border border-slate-200 mb-4 focus:outline-none" maxlength="4">
-                <button onclick="checkPassword()" class="w-full py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-bold rounded-xl shadow-md">입장하기 🔑</button>
+                <input type="number" pattern="[0-9]*" inputmode="numeric" id="login-password" placeholder="비밀번호 4자리 입력" class="w-full p-3 text-center text-lg font-bold tracking-widest rounded-xl border border-slate-200 mb-4 focus:outline-none focus:ring-2 focus:ring-amber-300" maxlength="4">
+                <button type="button" id="btn-submit-login" class="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-md btn-click-effect transition-all text-base">입장하기 🔑</button>
             </div>
         </div>
 
         <div id="main-app" class="hidden">
             <header class="text-center mb-6 relative">
-                <button onclick="logout()" class="absolute left-0 top-3 text-xs bg-slate-200/80 px-3 py-1.5 rounded-full font-bold text-slate-600">🔒 로그아웃</button>
+                <button id="btn-logout" class="absolute left-0 top-3 text-xs bg-slate-200/80 px-3 py-1.5 rounded-full font-bold text-slate-600">🔒 로그아웃</button>
                 <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-sm border border-amber-100/50 mb-3">
                     <span class="text-2xl" id="header-avatar">☁️</span>
                     <h1 class="text-2xl md:text-3xl font-bold text-amber-600 font-hand" id="header-title">마음일기</h1>
@@ -49,10 +54,10 @@
                 <p class="text-xs text-slate-500 font-hand text-lg" id="header-subtitle">소중한 마음을 기록하는 공간</p>
             </header>
 
-            <nav class="flex justify-between bg-white/60 backdrop-blur-md p-1.5 rounded-2xl border mb-6 gap-1">
-                <button onclick="switchTab('write')" id="tab-write" class="flex-1 py-3 text-sm font-bold rounded-xl active-tab">✏️ <span id="nav-write-text">일기 쓰기</span></button>
-                <button onclick="switchTab('history')" id="tab-history" class="flex-1 py-3 text-sm font-bold rounded-xl text-slate-500 hover:bg-white/40">📚 <span>우리 방 일기</span></button>
-                <button onclick="switchTab('parents')" id="tab-parents" class="flex-1 py-3 text-sm font-bold rounded-xl text-slate-500 hover:bg-white/40 relative">
+            <nav class="flex justify-between bg-white/60 p-1.5 rounded-2xl border mb-6 gap-1">
+                <button id="tab-write" class="flex-1 py-3 text-sm font-bold rounded-xl active-tab">✏️ <span id="nav-write-text">일기 쓰기</span></button>
+                <button id="tab-history" class="flex-1 py-3 text-sm font-bold rounded-xl text-slate-500 hover:bg-white/40">📚 <span>우리 방 일기</span></button>
+                <button id="tab-parents" class="flex-1 py-3 text-sm font-bold rounded-xl text-slate-500 hover:bg-white/40 relative">
                     <span>💌</span> <span id="nav-parents-text">엄빠 우체통</span>
                     <span id="badge-count" class="hidden absolute top-1 right-2 bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span>
                 </button>
@@ -60,12 +65,11 @@
 
             <main id="view-write" class="fade-in">
                 <div id="write-start-screen" class="bg-white/90 p-8 rounded-3xl border text-center">
-                    <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner animate-bounce"><span class="text-5xl">📖</span></div>
+                    <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce"><span class="text-5xl">📖</span></div>
                     <h2 class="text-2xl font-bold text-slate-700 mb-2 font-hand text-3xl" id="welcome-title">오늘 하루는 어땠어?</h2>
                     <p class="text-slate-500 mb-8 text-sm">오늘 하루 속 소중한 마음들을<br>엄마 아빠와 함께 나누어 보자!</p>
-                    <button onclick="startDiaryFlow()" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-bold text-lg rounded-2xl shadow-lg">마음 일기장 펼치기 ✨</button>
+                    <button id="btn-start-diary" class="px-8 py-4 bg-orange-500 text-white font-bold text-lg rounded-2xl shadow-md btn-click-effect">마음 일기장 펼치기 ✨</button>
                 </div>
-
                 <div id="write-wizard" class="hidden bg-white/90 p-6 md:p-8 rounded-3xl border shadow-md">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
@@ -77,13 +81,13 @@
                         </div>
                     </div>
                     <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6"><div id="progress-bar" class="bg-gradient-to-r from-amber-400 to-indigo-400 h-full" style="width: 10%"></div></div>
-                    <div class="mb-8 min-h-[160px] flex flex-col justify-center">
+                    <div class="mb-8 min-h-[140px] flex flex-col justify-center">
                         <p id="step-helper" class="text-slate-500 text-sm mb-3 italic font-hand text-lg text-amber-600/80"></p>
                         <div id="step-input-container"></div>
                     </div>
                     <div class="flex justify-between items-center gap-4">
-                        <button id="btn-prev" onclick="prevStep()" class="px-6 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl">이전</button>
-                        <button id="btn-next" onclick="nextStep()" class="flex-1 px-6 py-3.5 bg-gradient-to-r from-amber-400 to-indigo-400 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2"><span>다음으로</span>👉</button>
+                        <button id="btn-prev" class="px-6 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl">이전</button>
+                        <button id="btn-next" class="flex-1 px-6 py-3.5 bg-orange-500 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 btn-click-effect"><span id="btn-next-text">다음</span>👉</button>
                     </div>
                 </div>
             </main>
@@ -95,225 +99,438 @@
 
             <main id="view-parents" class="hidden fade-in">
                 <div id="parents-zone-info" class="bg-gradient-to-r from-rose-50 to-pink-50 border p-5 rounded-2xl mb-6 shadow-sm">
-                    <h3 class="font-bold text-rose-700 font-hand text-xl">엄마 아빠 사랑의 우체통</h3>
-                    <p class="text-xs text-rose-600 mt-1">우리 자녀들이 부모님께 보낸 실시간 편지가 배달되는 사서함입니다.</p>
+                    <h3 class="font-bold text-rose-700 font-hand text-xl">👩‍👨 엄마 아빠 사랑의 우체통</h3>
+                    <p class="text-xs text-rose-600 mt-1">아이들이 보낸 실시간 편지가 배달되는 공간입니다. 하트와 답장을 남겨주세요!</p>
                 </div>
                 <div id="parents-mail-list" class="space-y-4"></div>
-                <div id="parents-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📬</span><p class="text-slate-500 font-hand text-xl">아직 아이들이 보낸 편지가 없어요.</p></div>
+                <div id="parents-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📬</span><p class="text-slate-500 font-hand text-xl">아직 배달된 편지가 없어요.</p></div>
             </main>
         </div>
     </div>
 
     <div id="diary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto border fade-in">
-            <div class="sticky top-0 bg-white p-5 border-b flex justify-between items-center z-10">
+            <div class="p-5 border-b flex justify-between items-center bg-white sticky top-0 z-10">
                 <div class="flex items-center gap-2"><span id="modal-mood-icon" class="text-3xl">😊</span><h3 id="modal-date" class="font-bold text-slate-800">날짜</h3></div>
-                <button onclick="closeModal('diary-modal')" class="text-slate-400 p-1 bg-slate-100 rounded-full">❌</button>
+                <button id="btn-close-modal" class="text-slate-400 p-1 bg-slate-100 rounded-full">❌</button>
             </div>
-            <div class="p-6 space-y-6" id="modal-content-area"></div>
+            <div class="p-6 space-y-4" id="modal-content-area"></div>
+            <div class="p-5 bg-slate-50 border-t flex gap-2"><button id="btn-delete-diary" class="w-full py-2.5 bg-rose-50 text-rose-600 font-bold rounded-xl text-sm">🗑️ 일기장 삭제</button></div>
         </div>
     </div>
+
     <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3.5 rounded-2xl shadow-lg z-50 text-sm font-semibold opacity-0 pointer-events-none transition-all duration-300">✨ <span id="toast-msg">알림</span></div>
 
-    <script>
-        var FAMILY_PASSWORDS = { hanul: "1111", yeoul: "2222", parents: "1234" };
-        var diaries = []; var activeTab = 'write'; var currentStep = 0;
-        var selectedLoginUser = null; var currentUserRole = null; var draftDiary = {};
-        var dbGlobal = null; var authGlobal = null;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        var steps = [
-            { label: '기분 선택', title: '오늘 나의 기분은 어때?', icon: '🌈', helper: '나의 대표 기분을 골라봐!', type: 'mood' },
-            { label: '기쁜 순간', title: '1. 오늘 재미있거나 좋은 일이 있었나요?', icon: '☀️', helper: '나를 싱글벙글 웃게 만든 최고의 순간은?', placeholder: '오늘 친구랑 놀이터에서 놀았어요!', key: 'q1', type: 'textarea' },
-            { label: '학교 생활', title: '2. 학교에서 쉬는 시간, 점심 시간에 어떻게 지냈나요?', icon: '🏫', helper: '학교 종이 울리고 점심 먹을 때 있었던 일은?', placeholder: '점심시간에 소시지가 나왔어요!', key: 'q2', type: 'textarea' },
-            { label: '속상한 순간', title: '3. 기분이 상하거나 속상한 일이 있었나요?', icon: '😢', helper: '훌훌 털어놓고 싶은 속상했던 순간은?', placeholder: '비가 와서 신발이 조금 젖었어요.', key: 'q3', type: 'textarea' },
-            { label: '학원과 운동', title: '4. 학원이나 복싱에서는 어땠나요?', icon: '🥊', helper: '땀 흘리며 스트레스 팍팍 푼 이야기는?', placeholder: '복싱장에서 샌드백 원투 쳤어요!', key: 'q4', type: 'textarea' },
-            { label: '엄빠 소통', title: '5. 엄마, 아빠에게 전하고 싶은 얘기가 있나요.', icon: '💌', helper: '엄빠에게 전하는 따뜻한 편지 메시지', placeholder: '엄마 아빠 항상 사랑해요!', key: 'q5', type: 'textarea' }
+        // ── Firebase 설정 ──────────────────────────────────────────
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRdoiujidOfHG8pwn_EOoMC2UFzU190-w",
+            authDomain: "hanul-heart-diary.firebaseapp.com",
+            projectId: "hanul-heart-diary",
+            storageBucket: "hanul-heart-diary.firebasestorage.app",
+            messagingSenderId: "313053846900",
+            appId: "1:313053846900:web:bd6bb5d79e6bea468ca021"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ── 상태 변수 ──────────────────────────────────────────────
+        const FAMILY_PASSWORDS = { hanul: "1111", yeoul: "2222", parents: "1234" };
+        let diaries = [];
+        let currentStep = 0;
+        let selectedLoginUser = null;
+        let currentUserRole = null;
+        let draftDiary = {};
+        let selectedDiaryId = null;
+
+        const steps = [
+            { label: '기분 선택', title: '오늘 나의 기분은 어때?', icon: '🌈', helper: '대표 기분을 골라봐!', type: 'mood' },
+            { label: '기쁜 순간', title: '1. 오늘 재미있거나 좋은 일이 있었나요?', icon: '☀️', helper: '나를 웃게 만든 최고의 순간은?', placeholder: '축구 경기 이겨서 좋았어요!', key: 'q1', type: 'textarea' },
+            { label: '학교 생활', title: '2. 학교에서 쉬는 시간, 점심 시간에 어떻게 지냈나요?', icon: '🏫', helper: '학교에서 있었던 재미난 일은?', placeholder: '친구들이랑 잡기놀이 했어요.', key: 'q2', type: 'textarea' },
+            { label: '속상한 순간', title: '3. 기분이 상하거나 속상한 일이 있었나요?', icon: '😢', helper: '훌훌 털어놓고 싶은 아쉬운 순간은?', placeholder: '비가 와서 신발이 조금 젖었어요.', key: 'q3', type: 'textarea' },
+            { label: '학원과 운동', title: '4. 학원이나 복싱에서는 어땠나요?', icon: '🥊', helper: '땀 흘리며 열정적으로 운동한 이야기는?', placeholder: '복싱장에서 잽 연습 열심히 했어요!', key: 'q4', type: 'textarea' },
+            { label: '엄빠 소통', title: '5. 엄마, 아빠에게 전하고 싶은 얘기가 있나요?', icon: '💌', helper: '엄빠에게 전하는 따뜻한 메시지', placeholder: '엄마 아빠 사랑해요!', key: 'q5', type: 'textarea' }
         ];
-        var moods = [{ icon: '😃', text: '신나요' }, { icon: '🥰', text: '행복해요' }, { icon: '🥱', text: '피곤해요' }, { icon: '😢', text: '속상해요' }, { icon: '😡', text: '화나요' }];
+        const moods = [
+            { icon: '😃', text: '신나요' }, { icon: '🥰', text: '행복해요' },
+            { icon: '🥱', text: '피곤해요' }, { icon: '😢', text: '속상해요' }, { icon: '😡', text: '화나요' }
+        ];
 
+        // ── 토스트 ─────────────────────────────────────────────────
+        function showToast(emoji, msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.querySelector('span').innerText = msg;
+            t.style.opacity = '1';
+            t.innerHTML = `${emoji} <span>${msg}</span>`;
+            setTimeout(() => { t.style.opacity = '0'; }, 2500);
+        }
+
+        // ── Firebase 초기화 & 실시간 리스닝 ──────────────────────
+        signInAnonymously(auth).catch(err => console.error('Auth error:', err));
+
+        onSnapshot(collection(db, 'diaries'), (snapshot) => {
+            const fetched = [];
+            snapshot.forEach(d => fetched.push({ id: d.id, ...d.data() }));
+            fetched.sort((a, b) => b.id.localeCompare(a.id));
+            diaries = fetched;
+            if (currentUserRole) {
+                renderHistoryTab();
+                renderParentsTab();
+                updateUnreadParentsBadge();
+            }
+        });
+
+        // ── 로그인 ─────────────────────────────────────────────────
         function selectLoginUser(userRole) {
             selectedLoginUser = userRole;
-            document.getElementById('user-selector').querySelectorAll('button').forEach(function(b) { b.classList.remove('border-amber-400', 'bg-amber-50'); });
-            document.getElementById('btn-user-' + userRole).classList.add('border-amber-400', 'bg-amber-50');
+            ['hanul', 'yeoul', 'parents'].forEach(r => {
+                const btn = document.getElementById(`btn-user-${r}`);
+                btn.classList.remove('border-amber-400', 'bg-amber-50');
+                btn.classList.add('border-slate-100', 'bg-slate-50');
+            });
+            const sel = document.getElementById(`btn-user-${userRole}`);
+            sel.classList.remove('border-slate-100', 'bg-slate-50');
+            sel.classList.add('border-amber-400', 'bg-amber-50');
             document.getElementById('password-area').classList.remove('hidden');
-            document.getElementById('login-password').value = ''; document.getElementById('login-password').focus();
+            document.getElementById('login-password').value = '';
+            setTimeout(() => document.getElementById('login-password').focus(), 100);
         }
 
         function checkPassword() {
-            var inputPass = document.getElementById('login-password').value;
-            if (FAMILY_PASSWORDS[selectedLoginUser] === inputPass) {
+            const passInput = document.getElementById('login-password').value.trim();
+            if (!selectedLoginUser) {
+                showToast('⚠️', '사용자를 먼저 선택해 주세요!');
+                return;
+            }
+            if (FAMILY_PASSWORDS[selectedLoginUser] === passInput) {
                 currentUserRole = selectedLoginUser;
-                showToast('🔑', '인증 성공! 반갑습니다.');
+                showToast('🔑', '반갑습니다! 입장 성공!');
                 enterMainApp();
             } else {
-                showToast('❌', '비밀번호가 일치하지 않아요!');
+                showToast('❌', '비밀번호가 다릅니다!');
+                document.getElementById('login-password').value = '';
+                document.getElementById('login-password').focus();
             }
         }
 
         function enterMainApp() {
             document.getElementById('view-login').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            var titleMap = { hanul: "한울이의 마음일기", yeoul: "여울이의 마음일기", parents: "엄마아빠 우체통" };
-            var welcomeMap = { hanul: "한울아, 안녕! 오늘 하루는 어땠어?", yeoul: "여울아, 안녕! 오늘 하루는 어땠어?", parents: "아이들의 일기를 읽어보세요" };
+            const titleMap = { hanul: "한울이의 마음일기", yeoul: "여울이의 마음일기", parents: "엄마아빠 우체통" };
+            const welcomeMap = { hanul: "한울아, 안녕! 오늘 하루는 어땠어?", yeoul: "여울아, 안녕! 오늘 하루는 어땠어?", parents: "아이들의 일기를 확인해 보세요" };
             document.getElementById('header-title').innerText = titleMap[currentUserRole];
             document.getElementById('welcome-title').innerText = welcomeMap[currentUserRole];
             document.getElementById('header-avatar').innerText = currentUserRole === 'parents' ? '👩‍👨' : (currentUserRole === 'hanul' ? '👦' : '👧');
             if (currentUserRole === 'parents') {
-                document.getElementById('nav-write-text').innerText = "안내 대문"; document.getElementById('nav-parents-text').innerText = "아이들 우체통"; switchTab('parents');
+                document.getElementById('nav-write-text').innerText = "안내 대문";
+                document.getElementById('nav-parents-text').innerText = "아이들 우체통";
+                switchTab('parents');
             } else {
-                document.getElementById('nav-write-text').innerText = "일기 쓰기"; document.getElementById('nav-parents-text').innerText = "나의 우체통 반응"; switchTab('write');
+                document.getElementById('nav-write-text').innerText = "일기 쓰기";
+                document.getElementById('nav-parents-text').innerText = "나의 우체통 반응";
+                switchTab('write');
             }
         }
 
-        function logout() { currentUserRole = null; selectedLoginUser = null; document.getElementById('main-app').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); document.getElementById('password-area').classList.add('hidden'); }
-
-        function switchTab(tabId) {
-            activeTab = tabId;
-            document.getElementById('view-write').classList.add('hidden'); document.getElementById('view-history').classList.add('hidden'); document.getElementById('view-parents').classList.add('hidden');
-            document.getElementById('view-' + tabId).classList.remove('hidden');
-            ['write', 'history', 'parents'].forEach(function(t) { document.getElementById('tab-' + t).classList.remove('active-tab'); });
-            document.getElementById('tab-' + tabId).classList.add('active-tab');
-            if (tabId === 'history') renderHistoryTab(); if (tabId === 'parents') renderParentsTab();
-        }
-
-        function closeModal(mId) { document.getElementById(mId).classList.add('hidden'); }
-        function showToast(icon, message) {
-            var t = document.getElementById('toast'); document.getElementById('toast-icon').innerText = icon; document.getElementById('toast-msg').innerText = message;
-            t.classList.remove('opacity-0', 'pointer-events-none'); t.classList.add('opacity-100');
-            setTimeout(function() { t.classList.add('opacity-0', 'pointer-events-none'); t.classList.remove('opacity-100'); }, 3000);
-        }
-    </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-          apiKey: "AIzaSyCRdoiujidOfHG8pwn_EOoMC2UFzU190-w",
-          authDomain: "hanul-heart-diary.firebaseapp.com",
-          projectId: "hanul-heart-diary",
-          storageBucket: "hanul-heart-diary.firebasestorage.app",
-          messagingSenderId: "313053846900",
-          appId: "1:313053846900:web:bd6bb5d79e6bea468ca021"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        
-        authGlobal = auth; dbGlobal = db;
-
-        signInAnonymously(auth).then(() => {
-            // 저장과 읽기 주소를 한울이가 마주했던 공용 금고 'diaries'로 완전 단일화 맵핑!
-            onSnapshot(collection(db, 'diaries'), (snapshot) => {
-                const fetched = [];
-                snapshot.forEach(doc => { fetched.push({ id: doc.id, ...doc.data() }); });
-                fetched.sort((a,b) => b.id.localeCompare(a.id));
-                diaries = fetched;
-                if (currentUserRole) { renderHistoryTab(); renderParentsTab(); updateUnreadParentsBadge(); }
+        function logout() {
+            currentUserRole = null;
+            selectedLoginUser = null;
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('view-login').classList.remove('hidden');
+            document.getElementById('password-area').classList.add('hidden');
+            ['hanul', 'yeoul', 'parents'].forEach(r => {
+                const btn = document.getElementById(`btn-user-${r}`);
+                btn.classList.remove('border-amber-400', 'bg-amber-50');
+                btn.classList.add('border-slate-100', 'bg-slate-50');
             });
-        }).catch(err => console.error(err));
+        }
 
-        window.startDiaryFlow = function() {
+        // ── 탭 전환 ────────────────────────────────────────────────
+        function switchTab(tabId) {
+            ['write', 'history', 'parents'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active-tab');
+                document.getElementById(`tab-${t}`).classList.add('text-slate-500');
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('active-tab');
+            document.getElementById(`tab-${tabId}`).classList.remove('text-slate-500');
+            if (tabId === 'history') renderHistoryTab();
+            if (tabId === 'parents') renderParentsTab();
+        }
+
+        // ── 일기 작성 ──────────────────────────────────────────────
+        function startDiaryFlow() {
             if (currentUserRole === 'parents') return;
-            currentStep = 0; const today = new Date(); const formattedDate = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
-            if(diaries.find(d => d.date === formattedDate && d.writer === currentUserRole)) { showToast('📝', '오늘 일기는 이미 작성했습니다.'); switchTab('history'); return; }
-            draftDiary = { id: `diary_${currentUserRole}_${Date.now()}`, writer: currentUserRole, date: formattedDate, mood: '😃', q1: '', q2: '', q3: '', q4: '', q5: '', parentLove: false, parentReply: '' };
-            document.getElementById('write-start-screen').classList.add('hidden'); document.getElementById('write-wizard').classList.remove('hidden'); renderStep();
-        };
+            currentStep = 0;
+            const today = new Date();
+            const formattedDate = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+            if (diaries.find(d => d.date === formattedDate && d.writer === currentUserRole)) {
+                showToast('📝', '오늘 일기는 이미 작성했습니다.');
+                switchTab('history');
+                return;
+            }
+            draftDiary = {
+                id: `diary_${currentUserRole}_${Date.now()}`,
+                writer: currentUserRole,
+                date: formattedDate,
+                mood: '😃',
+                q1: '', q2: '', q3: '', q4: '', q5: '',
+                parentLove: false, parentReply: ''
+            };
+            document.getElementById('write-start-screen').classList.add('hidden');
+            document.getElementById('write-wizard').classList.remove('hidden');
+            renderStep();
+        }
 
-        window.renderStep = function() {
-            const step = steps[currentStep]; document.getElementById('step-icon').innerText = step.icon; document.getElementById('step-label').innerText = `STEP ${currentStep + 1} / ${steps.length}`;
-            document.getElementById('step-title').innerText = step.title; document.getElementById('step-helper').innerText = step.helper;
-            document.getElementById('progress-bar').style.width = `${((currentStep + 1) / steps.length) * 100}%`; document.getElementById('btn-prev').classList.toggle('invisible', currentStep === 0);
+        function renderStep() {
+            const step = steps[currentStep];
+            document.getElementById('step-icon').innerText = step.icon;
+            document.getElementById('step-label').innerText = `STEP ${currentStep + 1} / ${steps.length}`;
+            document.getElementById('step-title').innerText = step.title;
+            document.getElementById('step-helper').innerText = step.helper;
+            document.getElementById('progress-bar').style.width = `${((currentStep + 1) / steps.length) * 100}%`;
+            document.getElementById('btn-prev').classList.toggle('invisible', currentStep === 0);
             document.getElementById('btn-next-text').innerText = (currentStep === steps.length - 1) ? '일기 완성하기' : '다음으로';
-            const container = document.getElementById('step-input-container'); container.innerHTML = '';
+
+            const container = document.getElementById('step-input-container');
+            container.innerHTML = '';
+
             if (step.type === 'mood') {
-                const grid = document.createElement('div'); grid.className = 'grid grid-cols-5 gap-2 max-w-md mx-auto';
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-5 gap-2 max-w-md mx-auto';
                 moods.forEach(m => {
-                    const isSel = draftDiary.mood === m.icon; const btn = document.createElement('button');
-                    btn.onclick = () => { draftDiary.mood = m.icon; renderStep(); };
-                    btn.className = `flex flex-col items-center p-3 rounded-2xl border-2 ${isSel ? 'border-amber-400 bg-amber-50' : 'border-slate-100 bg-slate-50'}`;
-                    btn.innerHTML = `<span class="text-2xl mb-1">${m.icon}</span><span class="text-[10px] font-bold">${m.text}</span>`; grid.appendChild(btn);
+                    const isSel = draftDiary.mood === m.icon;
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `flex flex-col items-center p-3 rounded-2xl border-2 transition-all ${isSel ? 'border-amber-400 bg-amber-50' : 'border-slate-100 bg-slate-50'}`;
+                    btn.innerHTML = `<span class="text-2xl mb-1">${m.icon}</span><span class="text-[10px] font-bold">${m.text}</span>`;
+                    btn.addEventListener('click', () => { draftDiary.mood = m.icon; renderStep(); });
+                    grid.appendChild(btn);
                 });
                 container.appendChild(grid);
             } else {
-                const tx = document.createElement('textarea'); tx.className = 'w-full min-h-[120px] p-4 rounded-2xl border focus:ring-2 focus:ring-amber-300 text-sm resize-none';
-                tx.placeholder = `예시) ${step.placeholder}`; tx.value = draftDiary[step.key] || ''; tx.oninput = (e) => draftDiary[step.key] = e.target.value;
-                container.appendChild(tx); tx.focus();
+                const tx = document.createElement('textarea');
+                tx.className = 'w-full min-h-[120px] p-4 rounded-2xl border focus:ring-2 focus:ring-amber-300 text-sm resize-none focus:outline-none';
+                tx.placeholder = `예시) ${step.placeholder}`;
+                tx.value = draftDiary[step.key] || '';
+                tx.addEventListener('input', (e) => { draftDiary[step.key] = e.target.value; });
+                container.appendChild(tx);
+                tx.focus();
             }
-        };
+        }
 
-        window.prevStep = function() { if(currentStep > 0) { currentStep--; renderStep(); } };
-        window.nextStep = async function() {
+        async function nextStep() {
             const step = steps[currentStep];
-            if (step.type === 'textarea' && step.key && !(draftDiary[step.key] || '').trim()) draftDiary[step.key] = '무탈하게 하루를 보냈어요 🍀';
-            if (currentStep < steps.length - 1) { currentStep++; renderStep(); } else {
-                try {
-                    await setDoc(doc(db, 'diaries', draftDiary.id), draftDiary); showToast('🎉', '구름 저장소에 일기가 등록되었습니다!');
-                    document.getElementById('write-wizard').classList.add('hidden'); document.getElementById('write-start-screen').classList.remove('hidden'); switchTab('history');
-                } catch(e) { showToast('❌', '저장 실패'); }
+            if (step.type === 'textarea' && step.key && !(draftDiary[step.key] || '').trim()) {
+                draftDiary[step.key] = '무탈하게 하루를 보냈어요 🍀';
             }
-        };
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                renderStep();
+            } else {
+                try {
+                    await setDoc(doc(db, 'diaries', draftDiary.id), draftDiary);
+                    showToast('🎉', '구름 저장소에 일기가 등록되었습니다!');
+                    document.getElementById('write-wizard').classList.add('hidden');
+                    document.getElementById('write-start-screen').classList.remove('hidden');
+                    switchTab('history');
+                } catch (e) {
+                    console.error(e);
+                    showToast('❌', '저장 실패! 인터넷 연결을 확인해주세요.');
+                }
+            }
+        }
 
-        window.renderHistoryTab = function() {
-            const container = document.getElementById('diary-list'); const empty = document.getElementById('history-empty');
+        function prevStep() {
+            if (currentStep > 0) { currentStep--; renderStep(); }
+        }
+
+        // ── 히스토리 탭 렌더링 ─────────────────────────────────────
+        function renderHistoryTab() {
+            const container = document.getElementById('diary-list');
+            const empty = document.getElementById('history-empty');
             const myDiaries = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
-            if(myDiaries.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
-            empty.classList.add('hidden'); container.innerHTML = '';
+            if (myDiaries.length === 0) {
+                container.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+            container.innerHTML = '';
             myDiaries.forEach(d => {
-                const card = document.createElement('div'); card.className = 'bg-white p-4 rounded-2xl border flex justify-between items-center cursor-pointer hover:shadow-sm';
-                card.onclick = () => openDiaryDetails(d.id);
+                const card = document.createElement('div');
+                card.className = 'bg-white p-4 rounded-2xl border flex justify-between items-center cursor-pointer hover:shadow-sm transition-all';
                 const tag = d.writer === 'hanul' ? '👦 한울' : '👧 여울';
                 const badge = (d.parentLove || d.parentReply) ? `<span class="text-rose-500 font-bold text-xs ml-2">💖 사랑 도착</span>` : '';
                 card.innerHTML = `<div class="flex items-center gap-3">
                     <div class="text-2xl">${d.mood}</div>
-                    <div><div class="flex items-center text-xs font-bold text-slate-500"><span>[${tag}]</span><span class="ml-2">${d.date}</span>${badge}</div><p class="text-slate-400 text-xs truncate mt-0.5">${d.q1}</p></div>
-                </div><span>👉</span>`; container.appendChild(card);
+                    <div>
+                        <div class="flex items-center text-xs font-bold text-slate-500">
+                            <span>[${tag}]</span><span class="ml-2">${d.date}</span>${badge}
+                        </div>
+                        <p class="text-slate-400 text-xs truncate mt-0.5 max-w-[200px]">${d.q1 || ''}</p>
+                    </div>
+                </div><span>👉</span>`;
+                card.addEventListener('click', () => openDiaryDetails(d.id));
+                container.appendChild(card);
             });
-        };
+        }
 
-        window.renderParentsTab = function() {
-            const container = document.getElementById('parents-mail-list'); const empty = document.getElementById('parents-empty');
+        // ── 우체통 탭 렌더링 ──────────────────────────────────────
+        function renderParentsTab() {
+            const container = document.getElementById('parents-mail-list');
+            const empty = document.getElementById('parents-empty');
             const targetMails = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
-            if(targetMails.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
-            empty.classList.add('hidden'); container.innerHTML = '';
+            if (targetMails.length === 0) {
+                container.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+            container.innerHTML = '';
             targetMails.forEach(d => {
-                const card = document.createElement('div'); card.className = `p-4 rounded-2xl border bg-white ${(!d.parentLove && !d.parentReply) ? 'ring-1 ring-rose-100' : ''}`;
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-2xl border bg-white ${(!d.parentLove && !d.parentReply) ? 'ring-1 ring-rose-100' : ''}`;
                 const lbl = d.writer === 'hanul' ? '👦 한울이' : '👧 여울이';
                 let form = '';
                 if (currentUserRole === 'parents') {
                     if (!d.parentReply && !d.parentLove) {
                         form = `<div class="mt-3 pt-3 border-t border-dashed flex gap-2">
-                            <button onclick="sendParentLove('${d.id}')" class="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold">❤️ 하트</button>
+                            <button data-id="${d.id}" class="btn-parent-love px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold">❤️ 하트</button>
                             <input type="text" id="parent-reply-${d.id}" placeholder="사랑 가득 답장 쪽지..." class="flex-1 px-3 py-1 rounded-lg text-xs border focus:outline-none">
-                            <button onclick="sendParentReply('${d.id}')" class="px-3 py-1.5 bg-rose-500 text-white rounded-lg text-xs font-bold">보내기</button>
+                            <button data-id="${d.id}" class="btn-parent-send px-3 py-1.5 bg-rose-500 text-white rounded-lg text-xs font-bold">보내기</button>
                         </div>`;
-                    } else { form = `<div class="mt-3 pt-3 border-t bg-rose-50/20 p-2.5 rounded-lg text-xs font-bold text-rose-600">💝 답장 완료: ${d.parentLove ? '❤️ ' : ''} "${d.parentReply || ''}" <button onclick="resetParentReply('${d.id}')" class="text-[10px] text-slate-400 underline ml-2">수정</button></div>`; }
-                } else { form = `<div class="mt-3 pt-3 border-t text-xs text-slate-400 italic">${(d.parentLove || d.parentReply) ? `💝 엄빠: ${d.parentLove ? '❤️ ' : ''} "${d.parentReply || '하트'}"` : '⏳ 아직 부모님이 읽기 전이에요!'}</div>`; }
-                card.innerHTML = `<div class="flex justify-between items-center mb-1.5"><span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded preschool-badge">${lbl}의 쪽지</span><span class="text-slate-400 text-[11px]">${d.date}</span></div>
-                <div class="bg-slate-50 p-3 rounded-xl font-hand text-base text-slate-700 shadow-inner">${d.q5 || '사랑해요!'}</div>${form}`; container.appendChild(card);
+                    } else {
+                        form = `<div class="mt-3 pt-3 border-t bg-rose-50/20 p-2.5 rounded-lg text-xs font-bold text-rose-600">
+                            💝 답장 완료: ${d.parentLove ? '❤️ ' : ''} "${d.parentReply || ''}"
+                            <button data-id="${d.id}" class="btn-parent-reset text-[10px] text-slate-400 underline ml-2">수정</button>
+                        </div>`;
+                    }
+                } else {
+                    form = `<div class="mt-3 pt-3 border-t text-xs text-slate-400 italic">${(d.parentLove || d.parentReply) ? `💝 엄빠: ${d.parentLove ? '❤️ ' : ''} "${d.parentReply || '하트'}"` : '⏳ 아직 부모님이 읽기 전이에요!'}</div>`;
+                }
+                card.innerHTML = `<div class="flex justify-between items-center mb-1.5">
+                    <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">${lbl}의 쪽지</span>
+                    <span class="text-slate-400 text-[11px]">${d.date}</span>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl font-hand text-base text-slate-700 shadow-inner">${d.q5 || '사랑해요!'}</div>
+                ${form}`;
+                container.appendChild(card);
             });
-        };
 
-        window.sendParentLove = async function(id) { await updateDoc(doc(db, 'diaries', id), { parentLove: true }); showToast('❤️', '하트 전송!'); };
-        window.sendParentReply = async function(id) { const v = document.getElementById(`parent-reply-${id}`).value; if(!v.trim()) return; await updateDoc(doc(db, 'diaries', id), { parentReply: v.trim(), parentLove: true }); showToast('💌', '답장 완료!'); };
-        window.resetParentReply = async function(id) { await updateDoc(doc(db, 'diaries', id), { parentReply: '', parentLove: false }); };
+            // 우체통 버튼 이벤트 (동적 생성 후 바인딩)
+            container.querySelectorAll('.btn-parent-love').forEach(btn => {
+                btn.addEventListener('click', () => sendParentLove(btn.dataset.id));
+            });
+            container.querySelectorAll('.btn-parent-send').forEach(btn => {
+                btn.addEventListener('click', () => sendParentReply(btn.dataset.id));
+            });
+            container.querySelectorAll('.btn-parent-reset').forEach(btn => {
+                btn.addEventListener('click', () => resetParentReply(btn.dataset.id));
+            });
+        }
 
-        window.openDiaryDetails = function(id) {
-            selectedDiaryId = id; const d = diaries.find(item => item.id === id); if (!d) return;
-            document.getElementById('modal-mood-icon').innerText = d.mood; document.getElementById('modal-date').innerText = d.date;
-            const area = document.getElementById('modal-content-area'); area.innerHTML = '';
-            const items = [{ t: '☀️ 좋은 일', v: d.q1 }, { t: '🏫 학교 생활', v: d.q2 }, { t: '😢 속상한 일', v: d.q3 }, { t: '🥊 학원/운동', v: d.q4 }, { t: '💌 엄빠 쪽지', v: d.q5 }];
-            items.forEach(it => { const div = document.createElement('div'); div.className = 'bg-slate-50 p-3 rounded-xl'; div.innerHTML = `<h4 class="text-[11px] font-bold text-slate-400 mb-0.5">${it.t}</h4><p class="text-slate-800 font-hand text-base">${it.v || '없음'}</p>`; area.appendChild(div); });
+        async function sendParentLove(id) {
+            await updateDoc(doc(db, 'diaries', id), { parentLove: true });
+            showToast('❤️', '하트 전송!');
+        }
+        async function sendParentReply(id) {
+            const v = document.getElementById(`parent-reply-${id}`).value;
+            if (!v.trim()) return;
+            await updateDoc(doc(db, 'diaries', id), { parentReply: v.trim(), parentLove: true });
+            showToast('💌', '답장 완료!');
+        }
+        async function resetParentReply(id) {
+            await updateDoc(doc(db, 'diaries', id), { parentReply: '', parentLove: false });
+        }
+
+        // ── 일기 상세 모달 ─────────────────────────────────────────
+        function openDiaryDetails(id) {
+            selectedDiaryId = id;
+            const d = diaries.find(item => item.id === id);
+            if (!d) return;
+            document.getElementById('modal-mood-icon').innerText = d.mood;
+            document.getElementById('modal-date').innerText = d.date;
+            const area = document.getElementById('modal-content-area');
+            area.innerHTML = '';
+            const items = [
+                { t: '☀️ 좋은 일', v: d.q1 }, { t: '🏫 학교 생활', v: d.q2 },
+                { t: '😢 속상한 일', v: d.q3 }, { t: '🥊 학원/운동', v: d.q4 }, { t: '💌 엄빠 쪽지', v: d.q5 }
+            ];
+            items.forEach(it => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-50 p-3 rounded-xl';
+                div.innerHTML = `<h4 class="text-[11px] font-bold text-slate-400 mb-0.5">${it.t}</h4><p class="text-slate-800 font-hand text-base">${it.v || '없음'}</p>`;
+                area.appendChild(div);
+            });
             document.getElementById('diary-modal').classList.remove('hidden');
-        };
+        }
 
-        window.updateUnreadParentsBadge = function() {
-            const count = diaries.filter(d => !d.parentLove && !d.parentReply).length; const b = document.getElementById('badge-count');
-            if(count > 0 && currentUserRole === 'parents') { b.innerText = count; b.classList.remove('hidden'); } else { b.classList.add('hidden'); }
-        };
+        function closeModal() {
+            document.getElementById('diary-modal').classList.add('hidden');
+        }
+
+        async function deleteCurrentDiary() {
+            if (!selectedDiaryId) return;
+            if (confirm('이 일기를 정말 삭제하시겠습니까?')) {
+                await deleteDoc(doc(db, 'diaries', selectedDiaryId));
+                closeModal();
+                showToast('🗑️', '삭제 완료');
+            }
+        }
+
+        function updateUnreadParentsBadge() {
+            const count = diaries.filter(d => !d.parentLove && !d.parentReply).length;
+            const b = document.getElementById('badge-count');
+            if (count > 0 && currentUserRole === 'parents') {
+                b.innerText = count;
+                b.classList.remove('hidden');
+            } else {
+                b.classList.add('hidden');
+            }
+        }
+
+        // ── 이벤트 바인딩 (모두 여기서 일괄 처리) ─────────────────
+        // 로그인 화면 유저 선택 버튼
+        document.getElementById('btn-user-hanul').addEventListener('click', () => selectLoginUser('hanul'));
+        document.getElementById('btn-user-yeoul').addEventListener('click', () => selectLoginUser('yeoul'));
+        document.getElementById('btn-user-parents').addEventListener('click', () => selectLoginUser('parents'));
+
+        // 입장하기 버튼
+        document.getElementById('btn-submit-login').addEventListener('click', checkPassword);
+
+        // 엔터키로도 로그인 가능
+        document.getElementById('login-password').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        // 로그아웃
+        document.getElementById('btn-logout').addEventListener('click', logout);
+
+        // 탭 버튼
+        document.getElementById('tab-write').addEventListener('click', () => switchTab('write'));
+        document.getElementById('tab-history').addEventListener('click', () => switchTab('history'));
+        document.getElementById('tab-parents').addEventListener('click', () => switchTab('parents'));
+
+        // 일기 시작 버튼
+        document.getElementById('btn-start-diary').addEventListener('click', startDiaryFlow);
+
+        // 이전/다음 버튼
+        document.getElementById('btn-prev').addEventListener('click', prevStep);
+        document.getElementById('btn-next').addEventListener('click', nextStep);
+
+        // 모달 닫기 & 삭제
+        document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+        document.getElementById('btn-delete-diary').addEventListener('click', deleteCurrentDiary);
+
     </script>
 </body>
 </html>
