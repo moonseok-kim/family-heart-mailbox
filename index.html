@@ -13,9 +13,9 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .active-tab { background-color: #FEF3C7; color: #D97706; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         
-        /* 버튼을 눌렀을 때 확실하게 어두워지며 꾹 눌리는 시각 효과 강제 부여 */
+        /* 버튼 터치 시 생동감 넘치는 모션과 컬러감 부여 */
         .btn-click-effect:active {
-            transform: scale(0.97);
+            transform: scale(0.95);
             background-color: #EA580C !important;
             filter: brightness(0.9);
         }
@@ -40,8 +40,8 @@
                 </button>
             </div>
             <div id="password-area" class="hidden fade-in">
-                <input type="number" pattern="[0-9]*" inputmode="numeric" id="login-password" placeholder="비밀번호 4자리 입력" class="w-full p-3 text-center text-lg font-bold tracking-widest rounded-xl border border-slate-200 mb-4 focus:outline-none focus:ring-2 focus:ring-amber-300" maxlength="4">
-                <button type="button" id="btn-submit-login" class="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-md btn-click-effect transition-all text-base">입장하기 🔑</button>
+                <input type="password" inputmode="numeric" id="login-password" placeholder="비밀번호 4자리 입력" class="w-full p-3 text-center text-lg font-bold tracking-widest rounded-xl border border-slate-200 mb-4 focus:outline-none focus:ring-2 focus:ring-amber-300" maxlength="4">
+                <button type="button" id="btn-submit-login" class="w-full py-3.5 bg-orange-500 text-white font-bold rounded-xl shadow-md btn-click-effect transition-all text-base">입장하기 🔑</button>
             </div>
         </div>
 
@@ -164,7 +164,6 @@
             });
         }).catch(err => console.error(err));
 
-        // 브라우저 렉 원천 차단을 위해 순수 웹 표준 방식으로 이벤트 바인딩 강제 재배치
         window.selectLoginUser = function(userRole) {
             selectedLoginUser = userRole;
             document.querySelectorAll('#view-login button').forEach(b => b.classList.remove('border-amber-400', 'bg-amber-50'));
@@ -174,8 +173,9 @@
             setTimeout(() => document.getElementById('login-password').focus(), 100);
         };
 
+        // 🛠️ 인풋 값을 문자열로 강제 결합 및 트림처리하여 완벽 락 해제
         window.checkPassword = function() {
-            const passInput = document.getElementById('login-password').value;
+            const passInput = String(document.getElementById('login-password').value).trim();
             if (!selectedLoginUser) {
                 showToast('⚠️', '사용자를 먼저 선택해 주세요!');
                 return;
@@ -189,7 +189,7 @@
             }
         };
 
-        // 버튼 클릭 수신장치 직접 바인딩 강제 활성화
+        // 명령어 묶음을 버튼 리스너로 2중 안전 장치 연동
         document.getElementById('btn-submit-login').addEventListener('click', window.checkPassword);
 
         function enterMainApp() {
@@ -297,7 +297,7 @@
                 card.innerHTML = `<div class="flex justify-between items-center mb-1.5"><span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded preschool-badge">${lbl}의 쪽지</span><span class="text-slate-400 text-[11px]">${d.date}</span></div>
                 <div class="bg-slate-50 p-3 rounded-xl font-hand text-base text-slate-700 shadow-inner">${d.q5 || '사랑해요!'}</div>${form}`; container.appendChild(card);
             });
-        }
+        };
 
         window.sendParentLove = async function(id) { await updateDoc(doc(db, 'diaries', id), { parentLove: true }); showToast('❤️', '하트 전송!'); };
         window.sendParentReply = async function(id) { const v = document.getElementById(`parent-reply-${id}`).value; if(!v.trim()) return; await updateDoc(doc(db, 'diaries', id), { parentReply: v.trim(), parentLove: true }); showToast('💌', '답장 완료!'); };
