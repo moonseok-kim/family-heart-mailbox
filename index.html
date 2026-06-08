@@ -99,7 +99,7 @@
                 </div>
                 <div id="parents-mail-list" class="space-y-4"></div>
                 <div id="parents-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📬</span><p class="text-slate-500 font-hand text-xl">아직 배달된 편지가 없어요.</p></div>
-            </nav>
+            </main>
         </div>
     </div>
 
@@ -133,7 +133,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 🔑 대문자 변수명 매핑 고정
         const FAMILY_PASSWORDS = { hanul: "1111", yeoul: "2222", parents: "1234" };
         let diaries = []; let activeTab = 'write'; let currentStep = 0;
         let selectedLoginUser = null; let currentUserRole = null; let draftDiary = {}; let selectedDiaryId = null;
@@ -168,16 +167,11 @@
             document.getElementById('login-password').value = ''; document.getElementById('login-password').focus();
         }
 
-        // 🛠️ 비밀번호 체크 함수 내부 변수명 오타 완벽 복구 완료!
         function checkPassword() {
             const passInput = document.getElementById('login-password').value;
             if (FAMILY_PASSWORDS[selectedLoginUser] === passInput) {
-                currentUserRole = selectedLoginUser; 
-                showToast('🔑', '반갑습니다! 우리 가족 일기장 입장 완료!'); 
-                enterMainApp();
-            } else { 
-                showToast('❌', '비밀번호를 다시 확인해 주세요!'); 
-            }
+                currentUserRole = selectedLoginUser; showToast('🔑', '반갑습니다! 입장 성공!'); enterMainApp();
+            } else { showToast('❌', '비밀번호가 다릅니다!'); }
         }
 
         function enterMainApp() {
@@ -314,7 +308,7 @@
         function closeModal(mId) { document.getElementById(mId).classList.add('hidden'); }
         function openConfirmModal(icon, title, desc, action) { document.getElementById('confirm-icon').innerText = icon; document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-desc').innerText = desc; document.getElementById('confirm-action-btn').onclick = action; document.getElementById('confirm-modal').classList.remove('hidden'); }
         function filterDiaries() { renderHistoryTab(); }
-        function showToast(icon, message) { const t = document.getElementById('toast'); document.getElementById('toast-icon').innerText = icon; document.getElementById('toast-msg').innerText = message; t.classList.remove('opacity-0', 'pointer-events-none'); t.classList.add('opacity-100'); setTimeout(() => { t.classList.add('opacity-0', 'pointer-events-none'); t.cursor-events-none; t.classList.remove('opacity-100'); }, 3000); }
+        function showToast(icon, message) { const t = document.getElementById('toast'); document.getElementById('toast-icon').innerText = icon; document.getElementById('toast-msg').innerText = message; t.classList.remove('opacity-0', 'pointer-events-none'); t.classList.add('opacity-100'); setTimeout(() => { t.classList.add('opacity-0', 'pointer-events-none'); t.classList.remove('opacity-100'); }, 3000); }
 
         window.selectLoginUser = selectLoginUser; window.checkPassword = checkPassword; window.logout = logout; window.switchTab = switchTab; window.startDiaryFlow = startDiaryFlow; window.prevStep = prevStep; window.nextStep = nextStep; window.confirmReset = () => { document.getElementById('write-wizard').classList.add('hidden'); document.getElementById('write-start-screen').classList.remove('hidden'); }; window.closeModal = closeModal; window.sendParentLove = sendParentLove; window.sendParentReply = sendParentReply; window.resetParentReply = resetParentReply; window.openDiaryDetails = openDiaryDetails; window.deleteCurrentDiary = deleteCurrentDiary;
     </script>
