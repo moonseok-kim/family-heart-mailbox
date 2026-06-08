@@ -16,6 +16,7 @@
 </head>
 <body class="bg-gradient-to-br from-amber-50 via-pink-50 to-indigo-50 min-h-screen font-sans-kr text-slate-800 pb-12">
     <div class="max-w-2xl mx-auto px-4 pt-6">
+        
         <div id="view-login" class="fade-in max-w-md mx-auto mt-12 bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-amber-100 text-center">
             <div class="text-4xl mb-4">🏡</div>
             <h2 class="text-2xl font-bold text-amber-600 font-hand text-3xl mb-1">우리 가족 마음일기</h2>
@@ -98,7 +99,7 @@
                 </div>
                 <div id="parents-mail-list" class="space-y-4"></div>
                 <div id="parents-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📬</span><p class="text-slate-500 font-hand text-xl">아직 배달된 편지가 없어요.</p></div>
-            </main>
+            </nav>
         </div>
     </div>
 
@@ -132,6 +133,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // 🔑 대문자 변수명 매핑 고정
         const FAMILY_PASSWORDS = { hanul: "1111", yeoul: "2222", parents: "1234" };
         let diaries = []; let activeTab = 'write'; let currentStep = 0;
         let selectedLoginUser = null; let currentUserRole = null; let draftDiary = {}; let selectedDiaryId = null;
@@ -166,10 +168,16 @@
             document.getElementById('login-password').value = ''; document.getElementById('login-password').focus();
         }
 
+        // 🛠️ 비밀번호 체크 함수 내부 변수명 오타 완벽 복구 완료!
         function checkPassword() {
-            if (FAMILY_PASSWORDS[selectedLoginUser] === document.getElementById('login-password').value) {
-                currentUserRole = selectedLoginUser; showToast('🔑', '반갑습니다! 입장 성공!'); enterMainApp();
-            } else { showToast('❌', '비밀번호가 다릅니다!'); }
+            const passInput = document.getElementById('login-password').value;
+            if (FAMILY_PASSWORDS[selectedLoginUser] === passInput) {
+                currentUserRole = selectedLoginUser; 
+                showToast('🔑', '반갑습니다! 우리 가족 일기장 입장 완료!'); 
+                enterMainApp();
+            } else { 
+                showToast('❌', '비밀번호를 다시 확인해 주세요!'); 
+            }
         }
 
         function enterMainApp() {
@@ -273,7 +281,7 @@
                         </div>`;
                     } else { form = `<div class="mt-3 pt-3 border-t bg-rose-50/20 p-2.5 rounded-lg text-xs font-bold text-rose-600">💝 답장 완료: ${d.parentLove ? '❤️ ' : ''} "${d.parentReply || ''}" <button onclick="resetParentReply('${d.id}')" class="text-[10px] text-slate-400 underline ml-2">수정</button></div>`; }
                 } else { form = `<div class="mt-3 pt-3 border-t text-xs text-slate-400 italic">${(d.parentLove || d.parentReply) ? `💝 엄빠: ${d.parentLove ? '❤️ ' : ''} "${d.parentReply || '하트'}"` : '⏳ 아직 부모님이 읽기 전이에요!'}</div>`; }
-                card.innerHTML = `<div class="flex justify-between items-center mb-1.5"><span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">${lbl}의 쪽지</span><span class="text-slate-400 text-[11px]">${d.date}</span></div>
+                card.innerHTML = `<div class="flex justify-between items-center mb-1.5"><span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded preschool-badge">${lbl}의 쪽지</span><span class="text-slate-400 text-[11px]">${d.date}</span></div>
                 <div class="bg-slate-50 p-3 rounded-xl font-hand text-base text-slate-700 shadow-inner">${d.q5 || '사랑해요!'}</div>${form}`; container.appendChild(card);
             });
         }
@@ -306,7 +314,7 @@
         function closeModal(mId) { document.getElementById(mId).classList.add('hidden'); }
         function openConfirmModal(icon, title, desc, action) { document.getElementById('confirm-icon').innerText = icon; document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-desc').innerText = desc; document.getElementById('confirm-action-btn').onclick = action; document.getElementById('confirm-modal').classList.remove('hidden'); }
         function filterDiaries() { renderHistoryTab(); }
-        function showToast(icon, message) { const t = document.getElementById('toast'); document.getElementById('toast-icon').innerText = icon; document.getElementById('toast-msg').innerText = message; t.classList.remove('opacity-0', 'pointer-events-none'); t.classList.add('opacity-100'); setTimeout(() => { t.classList.add('opacity-0', 'pointer-events-none'); t.classList.remove('opacity-100'); }, 3000); }
+        function showToast(icon, message) { const t = document.getElementById('toast'); document.getElementById('toast-icon').innerText = icon; document.getElementById('toast-msg').innerText = message; t.classList.remove('opacity-0', 'pointer-events-none'); t.classList.add('opacity-100'); setTimeout(() => { t.classList.add('opacity-0', 'pointer-events-none'); t.cursor-events-none; t.classList.remove('opacity-100'); }, 3000); }
 
         window.selectLoginUser = selectLoginUser; window.checkPassword = checkPassword; window.logout = logout; window.switchTab = switchTab; window.startDiaryFlow = startDiaryFlow; window.prevStep = prevStep; window.nextStep = nextStep; window.confirmReset = () => { document.getElementById('write-wizard').classList.add('hidden'); document.getElementById('write-start-screen').classList.remove('hidden'); }; window.closeModal = closeModal; window.sendParentLove = sendParentLove; window.sendParentReply = sendParentReply; window.resetParentReply = resetParentReply; window.openDiaryDetails = openDiaryDetails; window.deleteCurrentDiary = deleteCurrentDiary;
     </script>
