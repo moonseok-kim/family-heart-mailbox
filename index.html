@@ -95,7 +95,6 @@
             </main>
 
             <main id="view-history" class="hidden fade-in">
-                <!-- 엄마아빠 전용 우리 방 일기 필터 버튼 -->
                 <div id="history-filter-area" class="hidden mb-4 flex gap-1.5 bg-white/50 p-1 rounded-xl border">
                     <button id="btn-hist-filter-all" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-amber-100 text-amber-700 shadow-sm transition-all">전체 보기</button>
                     <button id="btn-hist-filter-hanul" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all">👦 한울이</button>
@@ -108,9 +107,8 @@
             <main id="view-parents" class="hidden fade-in">
                 <div id="parents-zone-info" class="bg-gradient-to-r from-rose-50 to-pink-50 border p-5 rounded-2xl mb-4 shadow-sm">
                     <h3 class="font-bold text-rose-700 font-hand text-xl">👩‍👨 엄마 아빠 사랑의 우체통</h3>
-                    <p class="text-xs text-rose-600 mt-1">아이들이 보낸 실시간 편지가 배달되는 공간입니다. 하트와 답장을 남겨주세요!</p>
+                    <p class="text-xs text-rose-600 mt-1">아이들이 보낸 편지에 엄마, 아빠가 각각 하트와 따뜻한 답장을 따로 남겨줄 수 있어요!</p>
                 </div>
-                <!-- 엄마아빠 전용 우체통 필터 버튼 -->
                 <div id="parents-filter-area" class="hidden mb-4 flex gap-1.5 bg-white/50 p-1 rounded-xl border">
                     <button id="btn-parent-filter-all" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-amber-100 text-amber-700 shadow-sm transition-all">전체 보기</button>
                     <button id="btn-parent-filter-hanul" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all">👦 한울이</button>
@@ -162,8 +160,8 @@
         let currentUserRole = null;
         let draftDiary = {};
         let selectedDiaryId = null;
-        let historyFilter = 'all';  // 우리 방 일기 필터 상태 ('all', 'hanul', 'yeoul')
-        let parentsFilter = 'all';  // 엄빠 우체통 필터 상태 ('all', 'hanul', 'yeoul')
+        let historyFilter = 'all';
+        let parentsFilter = 'all';
 
         const steps = [
             { label: '기분 선택', title: '오늘 나의 기분은 어때?', icon: '🌈', helper: '대표 기분을 골라봐!', type: 'mood' },
@@ -253,23 +251,17 @@
             if (currentUserRole === 'parents') {
                 document.getElementById('nav-write-text').innerText = "안내 대문";
                 document.getElementById('nav-parents-text').innerText = "아이들 우체통";
-                
-                // 엄마아빠일 때만 한울/여울 필터 영역 보여주기
                 document.getElementById('history-filter-area').classList.remove('hidden');
                 document.getElementById('parents-filter-area').classList.remove('hidden');
                 historyFilter = 'all';
                 parentsFilter = 'all';
                 updateFilterButtons();
-                
                 switchTab('parents');
             } else {
                 document.getElementById('nav-write-text').innerText = "일기 쓰기";
                 document.getElementById('nav-parents-text').innerText = "나의 우체통 반응";
-                
-                // 아이들일 때는 필터 영역 숨기기
                 document.getElementById('history-filter-area').classList.add('hidden');
                 document.getElementById('parents-filter-area').classList.add('hidden');
-                
                 switchTab('write');
             }
         }
@@ -287,7 +279,6 @@
             });
         }
 
-        // ── 필터 버튼 UI 스타일 업데이트 ─────────────────────────
         function updateFilterButtons() {
             ['all', 'hanul', 'yeoul'].forEach(f => {
                 const btnHist = document.getElementById(`btn-hist-filter-${f}`);
@@ -309,7 +300,6 @@
             });
         }
 
-        // ── 탭 전환 ────────────────────────────────────────────────
         function switchTab(tabId) {
             ['write', 'history', 'parents'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
@@ -335,7 +325,7 @@
                 date: formattedDate,
                 mood: '😃',
                 q1: '', q2: '', q3: '', q4: '', q5: '',
-                parentLove: false, parentReply: ''
+                momLove: false, momReply: '', dadLove: false, dadReply: ''
             };
             document.getElementById('write-start-screen').classList.add('hidden');
             document.getElementById('write-wizard').classList.remove('hidden');
@@ -390,7 +380,6 @@
                 return;
             }
 
-            // 마지막 단계 - 저장
             const btnNext = document.getElementById('btn-next');
             btnNext.disabled = true;
             btnNext.innerHTML = '저장 중... ⏳';
@@ -405,8 +394,10 @@
                 q3: draftDiary.q3 || '',
                 q4: draftDiary.q4 || '',
                 q5: draftDiary.q5 || '',
-                parentLove: false,
-                parentReply: ''
+                momLove: false,
+                momReply: '',
+                dadLove: false,
+                dadReply: ''
             }).then(function() {
                 showToast('🎉', '일기가 저장되었습니다!');
                 document.getElementById('write-wizard').classList.add('hidden');
@@ -431,10 +422,8 @@
             const container = document.getElementById('diary-list');
             const empty = document.getElementById('history-empty');
             
-            // 기본 권한 필터링
             let myDiaries = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
             
-            // 엄마아빠 전용 한울/여울 필터링 적용
             if (currentUserRole === 'parents' && historyFilter !== 'all') {
                 myDiaries = myDiaries.filter(d => d.writer === historyFilter);
             }
@@ -450,7 +439,10 @@
                 const card = document.createElement('div');
                 card.className = 'bg-white p-4 rounded-2xl border flex justify-between items-center cursor-pointer hover:shadow-sm transition-all';
                 const tag = d.writer === 'hanul' ? '👦 한울' : '👧 여울';
-                const badge = (d.parentLove || d.parentReply) ? `<span class="text-rose-500 font-bold text-xs ml-2">💖 사랑 도착</span>` : '';
+                
+                // 엄마나 아빠 중 누구라도 반응을 남기면 '사랑 도착' 배지 생성
+                const badge = (d.momLove || d.momReply || d.dadLove || d.dadReply) ? `<span class="text-rose-500 font-bold text-xs ml-2">💖 사랑 도착</span>` : '';
+                
                 card.innerHTML = `<div class="flex items-center gap-3">
                     <div class="text-2xl">${d.mood}</div>
                     <div>
@@ -465,15 +457,13 @@
             });
         }
 
-        // ── 우체통 탭 렌더링 ──────────────────────────────────────
+        // ── 우체통 탭 렌더링 (엄마/아빠 각각의 독립 폼 구성) ────────────────
         function renderParentsTab() {
             const container = document.getElementById('parents-mail-list');
             const empty = document.getElementById('parents-empty');
             
-            // 기본 권한 필터링
             let targetMails = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
             
-            // 엄마아빠 전용 한울/여울 필터링 적용
             if (currentUserRole === 'parents' && parentsFilter !== 'all') {
                 targetMails = targetMails.filter(d => d.writer === parentsFilter);
             }
@@ -485,60 +475,114 @@
             }
             empty.classList.add('hidden');
             container.innerHTML = '';
+            
             targetMails.forEach(d => {
                 const card = document.createElement('div');
-                card.className = `p-4 rounded-2xl border bg-white ${(!d.parentLove && !d.parentReply) ? 'ring-1 ring-rose-100' : ''}`;
+                // 엄마와 아빠 모두 확인하지 않은 순수 새 글일 때만 테두리 강조
+                const isUnread = !d.momLove && !d.momReply && !d.dadLove && !d.dadReply;
+                card.className = `p-4 rounded-2xl border bg-white ${isUnread ? 'ring-1 ring-rose-100' : ''}`;
+                
                 const lbl = d.writer === 'hanul' ? '👦 한울이' : '👧 여울이';
-                let form = '';
+                
+                let momSection = '';
+                let dadSection = '';
+                
                 if (currentUserRole === 'parents') {
-                    if (!d.parentReply && !d.parentLove) {
-                        form = `<div class="mt-3 pt-3 border-t border-dashed flex gap-2">
-                            <button data-id="${d.id}" class="btn-parent-love px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold">❤️ 하트</button>
-                            <input type="text" id="parent-reply-${d.id}" placeholder="사랑 가득 답장 쪽지..." class="flex-1 px-3 py-1 rounded-lg text-xs border focus:outline-none">
-                            <button data-id="${d.id}" class="btn-parent-send px-3 py-1.5 bg-rose-500 text-white rounded-lg text-xs font-bold">보내기</button>
+                    // 엄마 답장 영역 제어
+                    if (!d.momReply && !d.momLove) {
+                        momSection = `<div class="flex gap-2 items-center mt-1">
+                            <button data-id="${d.id}" class="btn-mom-love px-2.5 py-1.5 bg-pink-50 text-pink-600 rounded-lg text-xs font-bold shrink-0">❤️ 하트</button>
+                            <input type="text" id="mom-reply-${d.id}" placeholder="엄마의 사랑 가득 답장..." class="flex-1 px-3 py-1.5 text-xs border rounded-lg focus:outline-none">
+                            <button data-id="${d.id}" class="btn-mom-send px-3 py-1.5 bg-pink-500 text-white rounded-lg text-xs font-bold shrink-0">보내기</button>
                         </div>`;
                     } else {
-                        form = `<div class="mt-3 pt-3 border-t bg-rose-50/20 p-2.5 rounded-lg text-xs font-bold text-rose-600">
-                            💝 답장 완료: ${d.parentLove ? '❤️ ' : ''} "${d.parentReply || ''}"
-                            <button data-id="${d.id}" class="btn-parent-reset text-[10px] text-slate-400 underline ml-2">수정</button>
+                        momSection = `<div class="bg-pink-50/40 p-2.5 rounded-lg text-xs font-bold text-pink-700 flex justify-between items-center mt-1">
+                            <span>💝 엄마: ${d.momLove ? '❤️ ' : ''} "${d.momReply || '하트'}"</span>
+                            <button data-id="${d.id}" class="btn-mom-reset text-[10px] text-slate-400 underline ml-2 shrink-0">수정</button>
+                        </div>`;
+                    }
+
+                    // 아빠 답장 영역 제어
+                    if (!d.dadReply && !d.dadLove) {
+                        dadSection = `<div class="flex gap-2 items-center mt-1">
+                            <button data-id="${d.id}" class="btn-dad-love px-2.5 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold shrink-0">❤️ 하트</button>
+                            <input type="text" id="dad-reply-${d.id}" placeholder="아빠의 든든한 응원 답장..." class="flex-1 px-3 py-1.5 text-xs border rounded-lg focus:outline-none">
+                            <button data-id="${d.id}" class="btn-dad-send px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs font-bold shrink-0">보내기</button>
+                        </div>`;
+                    } else {
+                        dadSection = `<div class="bg-indigo-50/40 p-2.5 rounded-lg text-xs font-bold text-indigo-700 flex justify-between items-center mt-1">
+                            <span>💝 아빠: ${d.dadLove ? '❤️ ' : ''} "${d.dadReply || '하트'}"</span>
+                            <button data-id="${d.id}" class="btn-dad-reset text-[10px] text-slate-400 underline ml-2 shrink-0">수정</button>
                         </div>`;
                     }
                 } else {
-                    form = `<div class="mt-3 pt-3 border-t text-xs text-slate-400 italic">${(d.parentLove || d.parentReply) ? `💝 엄빠: ${d.parentLove ? '❤️ ' : ''} "${d.parentReply || '하트'}"` : '⏳ 아직 부모님이 읽기 전이에요!'}</div>`;
+                    // 아이들 시점 화면 노출
+                    momSection = `<div class="text-xs ${d.momLove || d.momReply ? 'text-pink-600 font-bold' : 'text-slate-400 italic'} mt-1">
+                        ${d.momLove || d.momReply ? `💝 엄마: ${d.momLove ? '❤️ ' : ''} "${d.momReply || '하트'}"` : '⏳ 엄마는 아직 읽는 중이에요!'}
+                    </div>`;
+                    dadSection = `<div class="text-xs ${d.dadLove || d.dadReply ? 'text-indigo-600 font-bold' : 'text-slate-400 italic'} mt-1">
+                        ${d.dadLove || d.dadReply ? `💝 아빠: ${d.dadLove ? '❤️ ' : ''} "${d.dadReply || '하트'}"` : '⏳ 아빠는 아직 읽는 중이에요!'}
+                    </div>`;
                 }
+                
                 card.innerHTML = `<div class="flex justify-between items-center mb-1.5">
                     <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">${lbl}의 쪽지</span>
                     <span class="text-slate-400 text-[11px]">${d.date}</span>
                 </div>
-                <div class="bg-slate-50 p-3 rounded-xl font-hand text-base text-slate-700 shadow-inner">${d.q5 || '사랑해요!'}</div>
-                ${form}`;
+                <div class="bg-slate-50 p-3 rounded-xl font-hand text-base text-slate-700 shadow-inner mb-3">${d.q5 || '사랑해요!'}</div>
+                
+                <div class="mt-3 pt-3 border-t border-dashed space-y-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-pink-400 block">👩 엄마의 마음</span>
+                        ${momSection}
+                    </div>
+                    <div class="pt-2 border-t border-slate-100">
+                        <span class="text-[10px] font-bold text-indigo-400 block">👨 아빠의 마음</span>
+                        ${dadSection}
+                    </div>
+                </div>`;
+                
                 container.appendChild(card);
             });
 
-            // 우체통 버튼 이벤트 (동적 생성 후 바인딩)
-            container.querySelectorAll('.btn-parent-love').forEach(btn => {
-                btn.addEventListener('click', () => sendParentLove(btn.dataset.id));
-            });
-            container.querySelectorAll('.btn-parent-send').forEach(btn => {
-                btn.addEventListener('click', () => sendParentReply(btn.dataset.id));
-            });
-            container.querySelectorAll('.btn-parent-reset').forEach(btn => {
-                btn.addEventListener('click', () => resetParentReply(btn.dataset.id));
-            });
+            // 엄마 동적 이벤트 바인딩
+            container.querySelectorAll('.btn-mom-love').forEach(btn => btn.addEventListener('click', () => sendMomLove(btn.dataset.id)));
+            container.querySelectorAll('.btn-mom-send').forEach(btn => btn.addEventListener('click', () => sendMomReply(btn.dataset.id)));
+            container.querySelectorAll('.btn-mom-reset').forEach(btn => btn.addEventListener('click', () => resetMomReply(btn.dataset.id)));
+
+            // 아빠 동적 이벤트 바인딩
+            container.querySelectorAll('.btn-dad-love').forEach(btn => btn.addEventListener('click', () => sendDadLove(btn.dataset.id)));
+            container.querySelectorAll('.btn-dad-send').forEach(btn => btn.addEventListener('click', () => sendDadReply(btn.dataset.id)));
+            container.querySelectorAll('.btn-dad-reset').forEach(btn => btn.addEventListener('click', () => resetDadReply(btn.dataset.id)));
         }
 
-        async function sendParentLove(id) {
-            await updateDoc(doc(db, 'diaries', id), { parentLove: true });
-            showToast('❤️', '하트 전송!');
+        // ── 엄마/아빠 개별 통신 비즈니스 로직 ───────────────────────
+        async function sendMomLove(id) {
+            await updateDoc(doc(db, 'diaries', id), { momLove: true });
+            showToast('❤️', '엄마 하트 전송!');
         }
-        async function sendParentReply(id) {
-            const v = document.getElementById(`parent-reply-${id}`).value;
+        async function sendMomReply(id) {
+            const v = document.getElementById(`mom-reply-${id}`).value;
             if (!v.trim()) return;
-            await updateDoc(doc(db, 'diaries', id), { parentReply: v.trim(), parentLove: true });
-            showToast('💌', '답장 완료!');
+            await updateDoc(doc(db, 'diaries', id), { momReply: v.trim(), momLove: true });
+            showToast('💌', '엄마 답장 완료!');
         }
-        async function resetParentReply(id) {
-            await updateDoc(doc(db, 'diaries', id), { parentReply: '', parentLove: false });
+        async function resetMomReply(id) {
+            await updateDoc(doc(db, 'diaries', id), { momReply: '', momLove: false });
+        }
+
+        async function sendDadLove(id) {
+            await updateDoc(doc(db, 'diaries', id), { dadLove: true });
+            showToast('❤️', '아빠 하트 전송!');
+        }
+        async function sendDadReply(id) {
+            const v = document.getElementById(`dad-reply-${id}`).value;
+            if (!v.trim()) return;
+            await updateDoc(doc(db, 'diaries', id), { dadReply: v.trim(), dadLove: true });
+            showToast('💌', '아빠 답장 완료!');
+        }
+        async function resetDadReply(id) {
+            await updateDoc(doc(db, 'diaries', id), { dadReply: '', dadLove: false });
         }
 
         // ── 일기 상세 모달 ─────────────────────────────────────────
@@ -577,7 +621,8 @@
         }
 
         function updateUnreadParentsBadge() {
-            const count = diaries.filter(d => !d.parentLove && !d.parentReply).length;
+            // 엄마 아빠 둘 다 아무 피드백도 남기지 않은 글만 카운트 배지 알림
+            const count = diaries.filter(d => !d.momLove && !d.momReply && !d.dadLove && !d.dadReply).length;
             const b = document.getElementById('badge-count');
             if (count > 0 && currentUserRole === 'parents') {
                 b.innerText = count;
@@ -587,40 +632,24 @@
             }
         }
 
-        // ── 이벤트 바인딩 (모두 여기서 일괄 처리) ─────────────────
-        // 로그인 화면 유저 선택 버튼
+        // ── 이벤트 바인딩 ─────────────────────────────────────────
         document.getElementById('btn-user-hanul').addEventListener('click', () => selectLoginUser('hanul'));
         document.getElementById('btn-user-yeoul').addEventListener('click', () => selectLoginUser('yeoul'));
         document.getElementById('btn-user-parents').addEventListener('click', () => selectLoginUser('parents'));
-
-        // 입장하기 버튼
         document.getElementById('btn-submit-login').addEventListener('click', checkPassword);
-
-        // 엔터키로도 로그인 가능
         document.getElementById('login-password').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') checkPassword();
         });
-
-        // 로그아웃
         document.getElementById('btn-logout').addEventListener('click', logout);
-
-        // 탭 버튼
         document.getElementById('tab-write').addEventListener('click', () => switchTab('write'));
         document.getElementById('tab-history').addEventListener('click', () => switchTab('history'));
         document.getElementById('tab-parents').addEventListener('click', () => switchTab('parents'));
-
-        // 일기 시작 버튼
         document.getElementById('btn-start-diary').addEventListener('click', startDiaryFlow);
-
-        // 이전/다음 버튼
         document.getElementById('btn-prev').addEventListener('click', prevStep);
         document.getElementById('btn-next').addEventListener('click', nextStep);
-
-        // 모달 닫기 & 삭제
         document.getElementById('btn-close-modal').addEventListener('click', closeModal);
         document.getElementById('btn-delete-diary').addEventListener('click', deleteCurrentDiary);
 
-        // 엄마아빠 전용 한울/여울 필터 버튼 이벤트 바인딩
         ['all', 'hanul', 'yeoul'].forEach(f => {
             document.getElementById(`btn-hist-filter-${f}`).addEventListener('click', () => {
                 historyFilter = f;
