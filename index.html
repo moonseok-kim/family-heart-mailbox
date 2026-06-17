@@ -6,10 +6,8 @@
     <title>우리 가족 마음일기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 시인성이 뛰어난 맑고 선명한 고딕체(Noto Sans KR)만 깔끔하게 로드 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
         
-        /* 기존 손글씨 구역도 가독성을 극대화하기 위해 탄탄한 고딕 폰트 스택으로 전면 대체 */
         .font-hand { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif; font-weight: 500; }
         .font-sans-kr { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif; }
         
@@ -97,14 +95,26 @@
             </main>
 
             <main id="view-history" class="hidden fade-in">
+                <!-- 엄마아빠 전용 우리 방 일기 필터 버튼 -->
+                <div id="history-filter-area" class="hidden mb-4 flex gap-1.5 bg-white/50 p-1 rounded-xl border">
+                    <button id="btn-hist-filter-all" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-amber-100 text-amber-700 shadow-sm transition-all">전체 보기</button>
+                    <button id="btn-hist-filter-hanul" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all">👦 한울이</button>
+                    <button id="btn-hist-filter-yeoul" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all">👧 여울이</button>
+                </div>
                 <div id="diary-list" class="space-y-4"></div>
-                <div id="history-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📭</span><p class="text-slate-500 font-hand text-xl">아직 이 방에 등록된 마음일기가 없어요.</p></div>
+                <div id="history-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📭</span><p class="text-slate-500 font-hand text-xl">아직 등록된 마음일기가 없어요.</p></div>
             </main>
 
             <main id="view-parents" class="hidden fade-in">
-                <div id="parents-zone-info" class="bg-gradient-to-r from-rose-50 to-pink-50 border p-5 rounded-2xl mb-6 shadow-sm">
+                <div id="parents-zone-info" class="bg-gradient-to-r from-rose-50 to-pink-50 border p-5 rounded-2xl mb-4 shadow-sm">
                     <h3 class="font-bold text-rose-700 font-hand text-xl">👩‍👨 엄마 아빠 사랑의 우체통</h3>
                     <p class="text-xs text-rose-600 mt-1">아이들이 보낸 실시간 편지가 배달되는 공간입니다. 하트와 답장을 남겨주세요!</p>
+                </div>
+                <!-- 엄마아빠 전용 우체통 필터 버튼 -->
+                <div id="parents-filter-area" class="hidden mb-4 flex gap-1.5 bg-white/50 p-1 rounded-xl border">
+                    <button id="btn-parent-filter-all" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-amber-100 text-amber-700 shadow-sm transition-all">전체 보기</button>
+                    <button id="btn-parent-filter-hanul" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all">👦 한울이</button>
+                    <button id="btn-parent-filter-yeoul" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all">👧 여울이</button>
                 </div>
                 <div id="parents-mail-list" class="space-y-4"></div>
                 <div id="parents-empty" class="hidden bg-white/80 p-12 rounded-3xl border text-center"><span class="text-5xl block mb-4">📬</span><p class="text-slate-500 font-hand text-xl">아직 배달된 편지가 없어요.</p></div>
@@ -152,6 +162,8 @@
         let currentUserRole = null;
         let draftDiary = {};
         let selectedDiaryId = null;
+        let historyFilter = 'all';  // 우리 방 일기 필터 상태 ('all', 'hanul', 'yeoul')
+        let parentsFilter = 'all';  // 엄빠 우체통 필터 상태 ('all', 'hanul', 'yeoul')
 
         const steps = [
             { label: '기분 선택', title: '오늘 나의 기분은 어때?', icon: '🌈', helper: '대표 기분을 골라봐!', type: 'mood' },
@@ -237,13 +249,27 @@
             document.getElementById('header-title').innerText = titleMap[currentUserRole];
             document.getElementById('welcome-title').innerText = welcomeMap[currentUserRole];
             document.getElementById('header-avatar').innerText = currentUserRole === 'parents' ? '👩‍👨' : (currentUserRole === 'hanul' ? '👦' : '👧');
+            
             if (currentUserRole === 'parents') {
                 document.getElementById('nav-write-text').innerText = "안내 대문";
                 document.getElementById('nav-parents-text').innerText = "아이들 우체통";
+                
+                // 엄마아빠일 때만 한울/여울 필터 영역 보여주기
+                document.getElementById('history-filter-area').classList.remove('hidden');
+                document.getElementById('parents-filter-area').classList.remove('hidden');
+                historyFilter = 'all';
+                parentsFilter = 'all';
+                updateFilterButtons();
+                
                 switchTab('parents');
             } else {
                 document.getElementById('nav-write-text').innerText = "일기 쓰기";
                 document.getElementById('nav-parents-text').innerText = "나의 우체통 반응";
+                
+                // 아이들일 때는 필터 영역 숨기기
+                document.getElementById('history-filter-area').classList.add('hidden');
+                document.getElementById('parents-filter-area').classList.add('hidden');
+                
                 switchTab('write');
             }
         }
@@ -258,6 +284,28 @@
                 const btn = document.getElementById(`btn-user-${r}`);
                 btn.classList.remove('border-amber-400', 'bg-amber-50');
                 btn.classList.add('border-slate-100', 'bg-slate-50');
+            });
+        }
+
+        // ── 필터 버튼 UI 스타일 업데이트 ─────────────────────────
+        function updateFilterButtons() {
+            ['all', 'hanul', 'yeoul'].forEach(f => {
+                const btnHist = document.getElementById(`btn-hist-filter-${f}`);
+                if (btnHist) {
+                    if (historyFilter === f) {
+                        btnHist.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-amber-100 text-amber-700 shadow-sm transition-all";
+                    } else {
+                        btnHist.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all";
+                    }
+                }
+                const btnParent = document.getElementById(`btn-parent-filter-${f}`);
+                if (btnParent) {
+                    if (parentsFilter === f) {
+                        btnParent.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-amber-100 text-amber-700 shadow-sm transition-all";
+                    } else {
+                        btnParent.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all";
+                    }
+                }
             });
         }
 
@@ -382,7 +430,15 @@
         function renderHistoryTab() {
             const container = document.getElementById('diary-list');
             const empty = document.getElementById('history-empty');
-            const myDiaries = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
+            
+            // 기본 권한 필터링
+            let myDiaries = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
+            
+            // 엄마아빠 전용 한울/여울 필터링 적용
+            if (currentUserRole === 'parents' && historyFilter !== 'all') {
+                myDiaries = myDiaries.filter(d => d.writer === historyFilter);
+            }
+            
             if (myDiaries.length === 0) {
                 container.innerHTML = '';
                 empty.classList.remove('hidden');
@@ -413,7 +469,15 @@
         function renderParentsTab() {
             const container = document.getElementById('parents-mail-list');
             const empty = document.getElementById('parents-empty');
-            const targetMails = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
+            
+            // 기본 권한 필터링
+            let targetMails = diaries.filter(d => (currentUserRole === 'parents') || (d.writer === currentUserRole));
+            
+            // 엄마아빠 전용 한울/여울 필터링 적용
+            if (currentUserRole === 'parents' && parentsFilter !== 'all') {
+                targetMails = targetMails.filter(d => d.writer === parentsFilter);
+            }
+            
             if (targetMails.length === 0) {
                 container.innerHTML = '';
                 empty.classList.remove('hidden');
@@ -555,6 +619,20 @@
         // 모달 닫기 & 삭제
         document.getElementById('btn-close-modal').addEventListener('click', closeModal);
         document.getElementById('btn-delete-diary').addEventListener('click', deleteCurrentDiary);
+
+        // 엄마아빠 전용 한울/여울 필터 버튼 이벤트 바인딩
+        ['all', 'hanul', 'yeoul'].forEach(f => {
+            document.getElementById(`btn-hist-filter-${f}`).addEventListener('click', () => {
+                historyFilter = f;
+                updateFilterButtons();
+                renderHistoryTab();
+            });
+            document.getElementById(`btn-parent-filter-${f}`).addEventListener('click', () => {
+                parentsFilter = f;
+                updateFilterButtons();
+                renderParentsTab();
+            });
+        });
 
     </script>
 </body>
