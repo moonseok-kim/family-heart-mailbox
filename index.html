@@ -6,9 +6,13 @@
     <title>우리 가족 마음일기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700&display=swap');
-        .font-hand { font-family: 'Gaegu', 'Nanum Pen Script', sans-serif; }
-        .font-sans-kr { font-family: 'Noto Sans KR', sans-serif; }
+        /* 시인성이 뛰어난 맑고 선명한 고딕체(Noto Sans KR)만 깔끔하게 로드 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+        
+        /* 기존 손글씨 구역도 가독성을 극대화하기 위해 탄탄한 고딕 폰트 스택으로 전면 대체 */
+        .font-hand { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif; font-weight: 500; }
+        .font-sans-kr { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif; }
+        
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .active-tab { background-color: #FEF3C7; color: #D97706; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
